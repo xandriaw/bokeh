@@ -13,6 +13,7 @@ from ..enums import Units, RenderLevel
 from ..validation.errors import BAD_COLUMN_NAME, MISSING_GLYPH, NO_SOURCE_FOR_GLYPH
 from .. import validation
 
+from .glyphs import Circle, Line, Patch
 from .sources import DataSource, RemoteSource
 from .glyphs import Glyph
 
@@ -89,6 +90,25 @@ class GlyphRenderer(Renderer):
     level = Enum(RenderLevel, default="glyph", help="""
     Specifies the level in which to render the glyph.
     """)
+
+
+class GeoJSONRenderer(Renderer):
+    geojson = String('', help="""
+    GeoJSON string
+    """)
+
+    point = Instance(Circle, help="""
+    Circle glyph used to render Point features in GeoJSON
+    """)
+
+    line = Instance(Line, help="""
+    Line glyph used to render Line features in GeoJSON
+    """)
+
+    polygon = Instance(Patch, help="""
+    Patch glyph used to render Polygon features in GeoJSON
+    """)
+
 
 @abstract
 class GuideRenderer(Renderer):

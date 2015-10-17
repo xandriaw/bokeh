@@ -18,7 +18,7 @@ from .. import validation
 
 from .glyphs import Glyph
 from .ranges import Range, Range1d, FactorRange
-from .renderers import Renderer, GlyphRenderer
+from .renderers import Renderer, GlyphRenderer, GeoJSONRenderer
 from .sources import DataSource, ColumnDataSource
 from .tools import Tool, ToolEvents
 from .component import Component
@@ -244,6 +244,13 @@ class Plot(Component):
         g = GlyphRenderer(data_source=source, glyph=glyph, **kw)
         self.renderers.append(g)
         return g
+
+    def add_geojson(self, geojson, point=None, line=None, polygon=None):
+        if not point and not line and not polygon:
+            raise ValueError("Must provide a point, line or polygon glyph specification")
+        geojson_renderer = GeoJSONRenderer(geojson=geojson, point=point, line=line, polygon=polygon)
+        self.renderers.append(geojson_renderer)
+        return geojson_renderer
 
     @validation.error(REQUIRED_RANGE)
     def _check_required_range(self):
