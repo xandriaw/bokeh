@@ -90,6 +90,10 @@ locations =
   Triangle:                 require '../renderer/glyph/marker/triangle'
   X:                        require '../renderer/glyph/marker/x'
 
+  GeoGlyphRenderer:            require '../renderer/geo/geo_glyph_renderer'
+
+  GeoCircle:                   require '../renderer/geo/geo_circle'
+
   LinearAxis:               require '../renderer/guide/linear_axis'
   LogAxis:                  require '../renderer/guide/log_axis'
   CategoricalAxis:          require '../renderer/guide/categorical_axis'
@@ -100,6 +104,7 @@ locations =
   PolySelection:            require '../renderer/overlay/poly_selection'
 
   ColumnDataSource:         require '../source/column_data_source'
+  GeoJSONDataSource:        require '../source/geojson_data_source'
   ServerDataSource:         require '../source/server_data_source'
   BlazeDataSource:          require '../source/blaze_data_source'
   AjaxDataSource:           require '../source/ajax_data_source'
