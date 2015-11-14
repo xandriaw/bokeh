@@ -7,7 +7,6 @@ class GeoGlyphRendererView extends GlyphRenderer.View
   set_data: (request_render=true, arg) ->
     t0 = Date.now()
     source = @mget('data_source')
-    console.log(source)
 
     @glyph.set_data(source, arg)
 
