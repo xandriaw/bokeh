@@ -61,7 +61,7 @@ class DataRange1d extends Range1d.Model
     if renderers.length == 0
       for plot in @get('plots')
         rs = plot.get('renderers')
-        rs = (r for r in rs when r.type == "GlyphRenderer")
+        rs = (r for r in rs when r.type == "GlyphRenderer" or "GeoGlyphRenderer")
         all_renderers = all_renderers.concat(rs)
       renderers = all_renderers
 

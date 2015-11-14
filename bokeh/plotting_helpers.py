@@ -14,7 +14,8 @@ from .models import (
     FactorRange, Grid, HelpTool, HoverTool, LassoSelectTool, Legend, LinearAxis,
     LogAxis, PanTool, Plot, PolySelectTool,
     PreviewSaveTool, Range, Range1d, ResetTool, ResizeTool, Tool,
-    WheelZoomTool, ColumnDataSource, GlyphRenderer)
+    WheelZoomTool, ColumnDataSource, GlyphRenderer, GeoJSONDataSource,
+    GeoGlyphRenderer)
 
 from .properties import ColorSpec, Datetime
 from .util.string import nice_join
@@ -451,7 +452,10 @@ def _glyph_function(glyphclass, extra_docs=None):
         glyph = _make_glyph(glyphclass, kwargs, glyph_ca)
         nsglyph = _make_glyph(glyphclass, kwargs, nsglyph_ca)
 
-        glyph_renderer = GlyphRenderer(glyph=glyph, nonselection_glyph=nsglyph, **renderer_kws)
+        if isinstance(source, GeoJSONDataSource):
+            glyph_renderer = GeoGlyphRenderer(glyph=glyph, nonselection_glyph=nsglyph, **renderer_kws)
+        else:
+            glyph_renderer = GlyphRenderer(glyph=glyph, nonselection_glyph=nsglyph, **renderer_kws)
 
         if legend_name:
             _update_legend(self, legend_name, glyph_renderer)

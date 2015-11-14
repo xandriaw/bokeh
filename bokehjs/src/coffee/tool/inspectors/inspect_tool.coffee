@@ -36,7 +36,7 @@ class InspectTool extends Tool.Model
 
     if renderers.length == 0
       all_renderers = @get('plot').get('renderers')
-      renderers = (r for r in all_renderers when r.type == "GlyphRenderer")
+      renderers = (r for r in all_renderers when r.type == "GlyphRenderer" or "GeoGlyphRenderer")
 
     if names.length > 0
       renderers = (r for r in renderers when names.indexOf(r.get('name')) >= 0)

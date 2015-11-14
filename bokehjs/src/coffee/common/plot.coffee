@@ -64,9 +64,11 @@ class PlotView extends ContinuumView
 
     @model.initialize_layout(@model.solver)
 
+    console.log("setting the x_Ranges")
     # compat, to be removed
     @frame = @mget('frame')
     @x_range = @frame.get('x_ranges')['default']
+    console.log(@x_range)
     @y_range = @frame.get('y_ranges')['default']
     @xmapper = @frame.get('x_mappers')['default']
     @ymapper = @frame.get('y_mappers')['default']
@@ -216,6 +218,7 @@ class PlotView extends ContinuumView
     # check for good values for ranges before setting initial range
     good_vals = true
     xrs = {}
+    console.log(@frame.get('x_ranges'))
     for name, rng of @frame.get('x_ranges')
       if (not rng.get('start')? or not rng.get('end')? or
           _.isNaN(rng.get('start') + rng.get('end')))
@@ -353,6 +356,7 @@ class PlotView extends ContinuumView
       @title_props.set_value(ctx)
       ctx.fillText(title, sx, sy)
 
+    console.log("check for initial_range_info")
     if not @initial_range_info?
       @set_initial_range()
 
@@ -474,6 +478,7 @@ class Plot extends HasParent
     logger.debug("Plot initialized")
 
   initialize_layout: (solver) ->
+    console.log('initialize layout')
     canvas = @get('canvas')
     frame = new CartesianFrame.Model({
       x_range: @get('x_range'),

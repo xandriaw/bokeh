@@ -1,12 +1,21 @@
+_ = require "underscore"
 ColumnDataSource = require "./column_data_source"
 
 class GeoJSONDataSource extends ColumnDataSource.Model
   type: 'GeoJSONDataSource'
 
   initialize: (options) ->
-    super(options)
     @set('geojson', JSON.parse(options.geojson))
     @set('data', @geojson_to_column_data())
+    console.log('initializing data source')
+    super(options)
+
+  _get_new_nan_array: (length) ->
+    array = new Array(length)
+    nan_array = _.map(array, (x) -> NaN)
+    console.log('nan array')
+    console.log(nan_array)
+    return nan_array
 
   geojson_to_column_data: () ->
     geojson = @get('geojson')
@@ -25,20 +34,21 @@ class GeoJSONDataSource extends ColumnDataSource.Model
 
       if geometry_type == "Point"
         if !data.hasOwnProperty('x')
-          data['x'] = new Array(data_length)
+          data['x'] = @_get_new_nan_array(data_length)
         if !data.hasOwnProperty('y')
-          data['y'] = new Array(data_length)
+          data['y'] = @_get_new_nan_array(data_length)
         if !data.hasOwnProperty('z')
-          data['z'] = new Array(data_length)
+          data['z'] = @_get_new_nan_array(data_length)
 
-        data['x'][i] = geometry_coords[0]
-        data['y'][i] = geometry_coords[1]
-        data['z'][i] = geometry_coords[2]
+        data['x'][i] = geometry_coords[0] ? NaN
+        data['y'][i] = geometry_coords[1] ? NaN
+        data['z'][i] = geometry_coords[2] ? NaN
 
       for property in properties
         if !data.hasOwnProperty(property)
-          data[property] = new Array(data_length)
+          data[property] = @_get_new_nan_array(data_length)
         data[property][i] = properties[property]
+    console.log('my data is finished')
     return data
 
 module.exports =
