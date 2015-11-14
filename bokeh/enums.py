@@ -71,3 +71,4 @@ RenderLevel = enumeration("image", "underlay", "glyph", "annotation",
 RenderMode = enumeration("canvas", "css")
 Aggregation = enumeration("sum", "mean", "count", "nunique", "median", "min", "max")
 ScriptingLanguage = enumeration("javascript", "coffeescript")
+GeoJSONGeometryTypes = enumeration("Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon")

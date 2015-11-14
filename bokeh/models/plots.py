@@ -16,10 +16,10 @@ from ..validation.warnings import (MISSING_RENDERERS, NO_GLYPH_RENDERERS,
 from ..validation.errors import REQUIRED_RANGE
 from .. import validation
 
-from .glyphs import Glyph
+from .glyphs import Glyph, GeoMarker
 from .ranges import Range, Range1d, FactorRange
-from .renderers import Renderer, GlyphRenderer, TileRenderer
-from .sources import DataSource, ColumnDataSource
+from .renderers import Renderer, GlyphRenderer, TileRenderer, GeoGlyphRenderer
+from .sources import DataSource, ColumnDataSource, GeoJSONDataSource
 from .tools import Tool, ToolEvents
 from .component import Component
 
@@ -223,11 +223,21 @@ class Plot(Component):
         self.renderers.append(g)
         return g
 
+    def add_geo_glyph(self, geo_source, geo_glyph):
+        if not isinstance(geo_source, GeoJSONDataSource):
+            raise ValueError("'geo_source' argument to add_geo_glyph() must be GeoJSONDataSource subclass")
+        if not isinstance(geo_glyph, GeoMarker):
+            raise ValueError("'geo_marker' argument to add_geo_glyph() must be GeoMarker subclass")
+
+        g = GeoGlyphRenderer(data_source=geo_source, glyph=geo_glyph)
+        self.renderers.append(g)
+        return g
+
     def add_tile(self, tile_source, **kw):
         '''Adds new TileRenderer into the Plot.renderers
 
         Args:
-            tile_source (TileSource) : a tile source instance which contain tileset configuration 
+            tile_source (TileSource) : a tile source instance which contain tileset configuration
 
         Keyword Arguments:
             Additional keyword arguments are passed on as-is to the tile renderer

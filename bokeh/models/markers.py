@@ -5,10 +5,10 @@ markers on Bokeh plots.
 from __future__ import absolute_import
 
 from .glyphs import Glyph
-from ..enums import enumeration
+from ..enums import enumeration, GeoJSONGeometryTypes
 from ..mixins import FillProps, LineProps
 from ..properties import abstract
-from ..properties import DistanceSpec, Enum, Include, NumberSpec, ScreenDistanceSpec
+from ..properties import DistanceSpec, Enum, Include, NumberSpec, ScreenDistanceSpec, List
 
 @abstract
 class Marker(Glyph):
@@ -52,6 +52,17 @@ class Marker(Glyph):
     The %s values for the markers.
     """)
 
+
+class GeoMarker(Marker):
+    x = NumberSpec(default="lon")
+    y = NumberSpec(default="lat")
+    geometry_types = List(Enum(GeoJSONGeometryTypes), default=['Point'], help="""
+        A GeoJSON file may contain features of multiple geometry types. If you
+        only wish to use your marker for a particular geometry type, do that here.
+        Possible values are %s.
+    """)
+
+
 class Asterisk(Marker):
     """ Render asterisk '*' markers. """
 
@@ -93,6 +104,11 @@ class Circle(Marker):
     circles depends on what direction is used to measure the "distance" of
     the radius. This property allows that direction to be controlled.
     """)
+
+
+class GeoCircle(GeoMarker, Circle):
+    pass
+
 
 class CircleCross(Marker):
     """ Render circle markers with a '+' cross through the center. """

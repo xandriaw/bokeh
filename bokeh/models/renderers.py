@@ -13,8 +13,8 @@ from ..enums import Units, RenderLevel
 from ..validation.errors import BAD_COLUMN_NAME, MISSING_GLYPH, NO_SOURCE_FOR_GLYPH
 from .. import validation
 
-from .sources import DataSource, RemoteSource
-from .glyphs import Glyph
+from .sources import DataSource, RemoteSource, GeoJSONDataSource
+from .glyphs import Glyph, GeoMarker
 from .tiles import TileSource
 
 logger = logging.getLogger(__name__)
@@ -115,6 +115,25 @@ class GlyphRenderer(Renderer):
     level = Enum(RenderLevel, default="glyph", help="""
     Specifies the level in which to render the glyph.
     """)
+
+
+class GeoGlyphRenderer(GlyphRenderer):
+    data_source = Instance(GeoJSONDataSource, help="""
+        GeoJSON data source to use when rendering glyphs on the plot.
+    """)
+    glyph = Instance(GeoMarker, help="""
+    The glyph to render, in conjunction with the supplied data source
+    and ranges.
+    """)
+    selection_glyph = Instance(GeoMarker, help="""
+    An optional glyph used for selected points.
+    """)
+    nonselection_glyph = Instance(GeoMarker, help="""
+    An optional glyph used for explicitly non-selected points
+    (i.e., non-selected when there are other points that are selected,
+    but not when no points at all are selected.)
+    """)
+
 
 @abstract
 class GuideRenderer(Renderer):

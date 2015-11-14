@@ -75,6 +75,20 @@ class ColumnsRef(HasProps):
     A list of column names to reference from ``source``.
     """)
 
+
+class GeoJSONDataSource(DataSource):
+
+    geojson = String(help=""" The raw GeoJSON.  """)
+
+    def __init__(self, geojson, **kw):
+        super(GeoJSONDataSource, self).__init__(**kw)
+        self.geojson = geojson
+
+    def vm_serialize(self, changed_only=False):
+        attrs = super(GeoJSONDataSource, self).vm_serialize(changed_only=changed_only)
+        attrs['geojson'] = self.geojson
+        return attrs
+
 class ColumnDataSource(DataSource):
     """ Maps names of columns to sequences or arrays.
 
