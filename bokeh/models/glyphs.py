@@ -902,7 +902,7 @@ class Wedge(Glyph):
 # XXX: allow `from bokeh.models.glyphs import *`
 from .markers import (Marker, Asterisk, Circle, CircleCross, CircleX, Cross,
                       Diamond, DiamondCross, InvertedTriangle, Square,
-                      SquareCross, SquareX, Triangle, X, GeoMarker, GeoCircle)
+                      SquareCross, SquareX, Triangle, X)
 
 # Fool pyflakes
 (Marker, Asterisk, Circle, CircleCross, CircleX, Cross, Diamond, DiamondCross,

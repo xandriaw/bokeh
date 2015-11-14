@@ -8,13 +8,13 @@ import logging
 
 from ..plot_object import PlotObject
 from ..properties import abstract
-from ..properties import String, Enum, Instance, Float
-from ..enums import Units, RenderLevel
+from ..properties import String, Enum, Instance, Float, List
+from ..enums import Units, RenderLevel, GeoJSONGeometryTypes
 from ..validation.errors import BAD_COLUMN_NAME, MISSING_GLYPH, NO_SOURCE_FOR_GLYPH
 from .. import validation
 
 from .sources import DataSource, RemoteSource, GeoJSONDataSource
-from .glyphs import Glyph, GeoMarker
+from .glyphs import Glyph
 from .tiles import TileSource
 
 logger = logging.getLogger(__name__)
@@ -121,19 +121,11 @@ class GeoGlyphRenderer(GlyphRenderer):
     data_source = Instance(GeoJSONDataSource, help="""
         GeoJSON data source to use when rendering glyphs on the plot.
     """)
-    glyph = Instance(GeoMarker, help="""
-    The glyph to render, in conjunction with the supplied data source
-    and ranges.
+    geometry_types = List(Enum(GeoJSONGeometryTypes), default=['Point'], help="""
+        A GeoJSON file may contain features of multiple geometry types. If you
+        only wish to use your marker for a particular geometry type, do that here.
+        Possible values are %s.
     """)
-    selection_glyph = Instance(GeoMarker, help="""
-    An optional glyph used for selected points.
-    """)
-    nonselection_glyph = Instance(GeoMarker, help="""
-    An optional glyph used for explicitly non-selected points
-    (i.e., non-selected when there are other points that are selected,
-    but not when no points at all are selected.)
-    """)
-
 
 @abstract
 class GuideRenderer(Renderer):

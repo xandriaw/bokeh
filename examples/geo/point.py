@@ -1,20 +1,21 @@
 from bokeh.io import output_file, show
-from bokeh.models import Plot, Range1d, GeoCircle, LinearAxis, GeoJSONDataSource
+from bokeh.models import Plot, Range1d, Circle, LinearAxis, GeoJSONDataSource, HoverTool
 
 output_file('geo_point.html', mode='relative-dev')
 
 plot = Plot(
-    x_range=Range1d(-180, 180),
-    y_range=Range1d(-90, 90)
+    x_range=Range1d(-8, 2),
+    y_range=Range1d(48, 58)
 )
 
 with open('/Users/caged/Desktop/Optician.geojson', 'r') as f:
     geojson = f.read()
 
-geo_circle = GeoCircle(fill_color='blue', size=50, geometry_types=['Point'])
+circle = Circle(x='x', y='y', fill_color='blue', line_color=None, fill_alpha=0.5, size=6)
 geojson_source = GeoJSONDataSource(geojson)
 
-plot.add_geo_glyph(geojson_source, geo_circle)
+plot.add_geo_glyph(geojson_source, circle, geometry_types=['Point'])
+plot.add_tools(HoverTool(tooltips=[("x, y", "$x, $y")]))
 plot.add_layout(LinearAxis(), 'below')
 plot.add_layout(LinearAxis(), 'left')
 

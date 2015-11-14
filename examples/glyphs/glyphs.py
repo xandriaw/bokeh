@@ -9,7 +9,7 @@ from bokeh.models.glyphs import (
 )
 from bokeh.document import Document
 from bokeh.embed import file_html
-from bokeh.resources import INLINE
+from bokeh.resources import Resources
 from bokeh.browserlib import view
 
 N = 9
@@ -63,18 +63,18 @@ glyphs = [
 
 markers = [
     ("circle", Circle(x="x", y="y", radius=0.1, fill_color="#3288BD")),
-    ("circle_x", CircleX(x="x", y="y", size="sizes", line_color="#DD1C77", fill_color=None)),
-    ("circle_cross", CircleCross(x="x", y="y", size="sizes", line_color="#FB8072", fill_color=None, line_width=2)),
-    ("square", Square(x="x", y="y", size="sizes", fill_color="#74ADD1")),
-    ("square_x", SquareX(x="x", y="y", size="sizes", line_color="#FDAE6B", fill_color=None, line_width=2)),
-    ("square_cross", SquareCross(x="x", y="y", size="sizes", line_color="#7FC97F", fill_color=None, line_width=2)),
-    ("diamond", Diamond(x="x", y="y", size="sizes", line_color="#1C9099", line_width=2)),
-    ("diamond_cross", DiamondCross(x="x", y="y", size="sizes", line_color="#386CB0", fill_color=None, line_width=2)),
-    ("triangle", Triangle(x="x", y="y", size="sizes", line_color="#99D594", line_width=2)),
-    ("inverted_triangle", InvertedTriangle(x="x", y="y", size="sizes", line_color="#DE2D26", line_width=2)),
-    ("cross", Cross(x="x", y="y", size="sizes", line_color="#E6550D", fill_color=None, line_width=2)),
-    ("asterisk", Asterisk(x="x", y="y", size="sizes", line_color="#F0027F", fill_color=None, line_width=2)),
-    ("x", X(x="x", y="y", size="sizes", line_color="milkshake", fill_color=None, line_width=2)),
+#    ("circle_x", CircleX(x="x", y="y", size="sizes", line_color="#DD1C77", fill_color=None)),
+#    ("circle_cross", CircleCross(x="x", y="y", size="sizes", line_color="#FB8072", fill_color=None, line_width=2)),
+#    ("square", Square(x="x", y="y", size="sizes", fill_color="#74ADD1")),
+#    ("square_x", SquareX(x="x", y="y", size="sizes", line_color="#FDAE6B", fill_color=None, line_width=2)),
+#    ("square_cross", SquareCross(x="x", y="y", size="sizes", line_color="#7FC97F", fill_color=None, line_width=2)),
+#    ("diamond", Diamond(x="x", y="y", size="sizes", line_color="#1C9099", line_width=2)),
+#    ("diamond_cross", DiamondCross(x="x", y="y", size="sizes", line_color="#386CB0", fill_color=None, line_width=2)),
+#    ("triangle", Triangle(x="x", y="y", size="sizes", line_color="#99D594", line_width=2)),
+#    ("inverted_triangle", InvertedTriangle(x="x", y="y", size="sizes", line_color="#DE2D26", line_width=2)),
+#    ("cross", Cross(x="x", y="y", size="sizes", line_color="#E6550D", fill_color=None, line_width=2)),
+#    ("asterisk", Asterisk(x="x", y="y", size="sizes", line_color="#F0027F", fill_color=None, line_width=2)),
+#    ("x", X(x="x", y="y", size="sizes", line_color="milkshake", fill_color=None, line_width=2)),
 ]
 
 def make_tab(title, glyph):
@@ -100,7 +100,7 @@ def make_tab(title, glyph):
 def make_tabs(objs):
     return Tabs(tabs=[ make_tab(title, obj) for title, obj in objs ])
 
-layout = VBox(children=[Paragraph(text="Only Image and ImageRGBA glyphs are not demonstrated."), make_tabs(glyphs), make_tabs(markers)])
+layout = VBox(children=[make_tabs(markers)])
 
 doc = Document()
 doc.add(layout)
@@ -108,6 +108,6 @@ doc.add(layout)
 if __name__ == "__main__":
     filename = "glyphs.html"
     with open(filename, "w") as f:
-        f.write(file_html(doc, INLINE, "Glyphs"))
+        f.write(file_html(doc, Resources(mode='relative-dev'), "Glyphs"))
     print("Wrote %s" % filename)
     view(filename)

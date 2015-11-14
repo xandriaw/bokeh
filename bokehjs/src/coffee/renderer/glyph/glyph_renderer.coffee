@@ -65,6 +65,7 @@ class GlyphRendererView extends PlotWidget
   set_data: (request_render=true, arg) ->
     t0 = Date.now()
     source = @mget('data_source')
+    console.log(source.get('data'))
 
     @glyph.set_data(source, arg)
 

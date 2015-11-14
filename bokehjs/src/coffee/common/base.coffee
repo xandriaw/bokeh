@@ -54,6 +54,7 @@ locations =
   BBoxTileSource:           require '../renderer/tile/bbox_tile_source'
 
   GlyphRenderer:            require '../renderer/glyph/glyph_renderer'
+  GeoGlyphRenderer:            require '../renderer/glyph/geo_glyph_renderer'
 
   AnnularWedge:             require '../renderer/glyph/annular_wedge'
   Annulus:                  require '../renderer/glyph/annulus'
@@ -90,9 +91,6 @@ locations =
   Triangle:                 require '../renderer/glyph/marker/triangle'
   X:                        require '../renderer/glyph/marker/x'
 
-  GeoGlyphRenderer:            require '../renderer/geo/geo_glyph_renderer'
-
-  GeoCircle:                   require '../renderer/geo/geo_circle'
 
   LinearAxis:               require '../renderer/guide/linear_axis'
   LogAxis:                  require '../renderer/guide/log_axis'

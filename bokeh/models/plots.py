@@ -16,7 +16,7 @@ from ..validation.warnings import (MISSING_RENDERERS, NO_GLYPH_RENDERERS,
 from ..validation.errors import REQUIRED_RANGE
 from .. import validation
 
-from .glyphs import Glyph, GeoMarker
+from .glyphs import Glyph
 from .ranges import Range, Range1d, FactorRange
 from .renderers import Renderer, GlyphRenderer, TileRenderer, GeoGlyphRenderer
 from .sources import DataSource, ColumnDataSource, GeoJSONDataSource
@@ -223,13 +223,13 @@ class Plot(Component):
         self.renderers.append(g)
         return g
 
-    def add_geo_glyph(self, geo_source, geo_glyph):
+    def add_geo_glyph(self, geo_source, glyph, geometry_types=None):
         if not isinstance(geo_source, GeoJSONDataSource):
             raise ValueError("'geo_source' argument to add_geo_glyph() must be GeoJSONDataSource subclass")
-        if not isinstance(geo_glyph, GeoMarker):
-            raise ValueError("'geo_marker' argument to add_geo_glyph() must be GeoMarker subclass")
+        if not isinstance(glyph, Glyph):
+            raise ValueError("'glyph' argument to add_geo_glyph() must be Glyph subclass")
 
-        g = GeoGlyphRenderer(data_source=geo_source, glyph=geo_glyph)
+        g = GeoGlyphRenderer(data_source=geo_source, glyph=glyph, geometry_types=geometry_types)
         self.renderers.append(g)
         return g
 
