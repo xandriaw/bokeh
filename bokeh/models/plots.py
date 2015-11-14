@@ -18,7 +18,11 @@ from .. import validation
 
 from .glyphs import Glyph
 from .ranges import Range, Range1d, FactorRange
+<<<<<<< HEAD
 from .renderers import Renderer, GlyphRenderer, GeoJSONRenderer
+=======
+from .renderers import Renderer, GlyphRenderer, TileRenderer
+>>>>>>> master
 from .sources import DataSource, ColumnDataSource
 from .tools import Tool, ToolEvents
 from .component import Component
@@ -52,28 +56,6 @@ def _select_helper(args, kwargs):
     else:
         selector = kwargs
     return selector
-
-
-class PlotContext(PlotObject):
-    """ A container for multiple plot objects.
-
-    ``PlotContext`` objects are a source of confusion. Their purpose
-    is to collect together different top-level objects (e.g., ``Plot``
-    or layout widgets). The reason for this is that different plots may
-    need to share ranges or data sources between them. A ``PlotContext``
-    is a container in which such sharing can occur between the contained
-    objects.
-    """
-
-    children = List(Instance(PlotObject), help="""
-    A list of top level objects in this ``PlotContext`` container.
-    """)
-
-# TODO (bev) : is this used anywhere?
-class PlotList(PlotContext):
-    # just like plot context, except plot context has special meaning
-    # everywhere, so plotlist is the generic one
-    pass
 
 class Plot(Component):
     """ Model representing a plot, containing glyphs, guides, annotations.
@@ -251,6 +233,23 @@ class Plot(Component):
         geojson_renderer = GeoJSONRenderer(geojson=geojson, point=point, line=line, polygon=polygon)
         self.renderers.append(geojson_renderer)
         return geojson_renderer
+
+    def add_tile(self, tile_source, **kw):
+        '''Adds new TileRenderer into the Plot.renderers
+
+        Args:
+            tile_source (TileSource) : a tile source instance which contain tileset configuration
+
+        Keyword Arguments:
+            Additional keyword arguments are passed on as-is to the tile renderer
+
+        Returns:
+            TileRenderer : TileRenderer
+
+        '''
+        tile_renderer = TileRenderer(tile_source=tile_source, **kw)
+        self.renderers.append(tile_renderer)
+        return tile_renderer
 
     @validation.error(REQUIRED_RANGE)
     def _check_required_range(self):
