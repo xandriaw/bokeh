@@ -264,82 +264,11 @@ class GeoJSONDataSource(ColumnDataSource):
     only process a FeatureCollection of Points.
     """)
 
-    def __init__(self, **kwargs):
-        super(GeoJSONDataSource, self).__init__(**kwargs)
-        self.data = self.geojson_to_data(self.geojson)
-        self.column_names = list(self.data.keys())
-
-    @classmethod
-    def geojson_to_data(cls, raw_geojson):
-        geojson_obj = json.loads(raw_geojson)
-        if geojson_obj['type'] != 'FeatureCollection':
-            raise ValueError("GeoJSONDataSource currently only supports type: FeatureCollection")
-        if "features" not in geojson_obj:
-            raise ValueError("`features` missing from geojson")
-
-        features = geojson_obj['features']
-        data_length = len(features)
-        data = {
-            'x': [None] * data_length,
-            'y': [None] * data_length,
-        }
-        for i, feature in enumerate(features):
-            geometry = feature['geometry']
-            if geometry['type'] != "Point":
-                import warnings
-                warnings.warn("GeoJSONDataSource currently only supports Points, feature ignored.")
-                continue
-            coordinates = geometry['coordinates']
-            if len(coordinates) == 3:
-                if 'z' not in data:
-                    data['z'] = [None] * data_length
-                data['z'][i] = coordinates[2]
-            data['x'][i] = coordinates[0]
-            data['y'][i] = coordinates[1]
-
-            properties = feature.get('properties')
-            if properties:
-                for prop_key, prop_val in properties.items():
-                    if prop_key not in data:
-                        data[prop_key] = [None] * data_length
-                    data[prop_key][i] = prop_val
-        return data
-
-    @classmethod
-    def data_to_geojson(cls, data):
-        data_length = len(data['x'])
-        features = []
-        non_coordinate_columns = set(data.keys()) - set(['x', 'y', 'y'])
-        for i in range(data_length):
-            coordinates = [data['x'][i], data['y'][i]]
-            if data.get('z'):
-                coordinates.append(data['z'][i])
-            feature = {'type': 'Feature', 'geometry': {'type': 'Point', 'coordinates': coordinates}}
-            if len(non_coordinate_columns) > 0:
-                properties = {}
-                for col in non_coordinate_columns:
-                    properties[col] = data[col][i]
-                feature.update({'properties': properties})
-            features.append(feature)
-
-        geojson_obj = {
-            "type": "FeatureCollection",
-            "features": features
-        }
-        return json.dumps(geojson_obj, indent=4)
-
     def vm_serialize(self, changed_only=True):
         attrs = super(GeoJSONDataSource, self).vm_serialize(changed_only=changed_only)
         if 'data' in attrs:
             attrs.pop('data')
         return attrs
-
-    def remove(self, name):
-        if name in ['x', 'y', 'z']:
-            raise ValueError('Cannot remove columns `x`, `y`, or `z` from GeoJSONDataSource')
-        removed = super(GeoJSONDataSource, self).remove(name)
-        self.geojson = self.data_to_geojson(self.data)
-        return removed
 
 
 @abstract
