@@ -2,7 +2,7 @@ from bokeh.io import output_file, show
 from bokeh.models import GeoJSONDataSource, Range1d, HoverTool
 from bokeh.plotting import figure
 
-output_file("us_states.html", title="GeoJSON US States", mode='relative-dev')
+output_file("us_states.html", title="GeoJSON US States", mode='inline')
 
 with open('gz_2010_us_040_00_20m.json', 'r') as f:
     geojson = f.read()
