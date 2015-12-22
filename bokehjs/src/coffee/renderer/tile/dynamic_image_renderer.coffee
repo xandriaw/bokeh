@@ -11,6 +11,7 @@ class DynamicImageView extends PlotWidget
     return [@x_range.get('start'), @y_range.get('start'), @x_range.get('end'), @y_range.get('end')]
 
   _set_data: () ->
+    @wrap_utils = WrapAroundUtils(@mget('wrap_around_start'), @mget('wrap_around_end'))
     @map_plot = @plot_view.model
     @map_canvas = @plot_view.canvas_view.ctx
     @map_frame = @plot_view.frame
@@ -18,7 +19,7 @@ class DynamicImageView extends PlotWidget
     @x_mapper = this.map_frame.get('x_mappers')['default']
     @y_range = @map_plot.get('y_range')
     @y_mapper = this.map_frame.get('y_mappers')['default']
-    @lastImage = undefined
+    @lastImages = []
     @extent = @get_extent()
 
   _map_data: () ->
@@ -38,19 +39,46 @@ class DynamicImageView extends PlotWidget
     image_data = e.target.image_data
     @mget('image_source').remove_image(image_data)
 
-  _create_image: (bounds) ->
+  _create_images: (bounds) ->
+    height = Math.ceil(@map_frame.get('height'))
+    width = Math.ceil(@map_frame.get('width'))
+    if @mget('wrap_around')
+      for i in @_partition_bounds(bounds)
+        @_create_image(i.bounds, i.height, i.width)
+    else
+      @_create_image(bounds, height, width)
+      
+  _create_image: (image_data, height, width) ->
     image = new Image()
     image.onload = @_on_image_load
     image.onerror = @_on_image_error
     image.alt = ''
-    image.image_data =
-      bounds : bounds
-      loaded : false
-      cache_key : bounds.join(':')
+
+    image_data.loaded = false
+    image_data.cache_key = image_data.bounds.join(':')
+
+    image.image_data = image_data
+
+    if 'normalized_bounds' of image_data
+      bounds = image_data.normalized_bounds
+    else
+      bounds = image_bounds.bounds
+
+    [sxmin, symin] = @plot_view.frame.map_to_screen([bounds[0]], [bounds[3]], @plot_view.canvas)
+    [sxmax, symax] = @plot_view.frame.map_to_screen([bounds[2]], [bounds[1]], @plot_view.canvas)
+    sxmin = sxmin[0]
+    symin = symin[0]
+    sxmax = sxmax[0]
+    symax = symax[0]
+    sw = sxmax - sxmin
+    sh = symax - symin
+    sx = sxmin
+    sy = symin
 
     @mget('image_source').add_image(image.image_data)
-    image.src = @mget('image_source').get_image_url(bounds[0], bounds[1], bounds[2], bounds[3], Math.ceil(@map_frame.get('height')), Math.ceil(@map_frame.get('width')))
+    image.src = @mget('image_source').get_image_url(bounds[0], bounds[1], bounds[2], bounds[3], sh, sw)
     return image
+
 
   render: (ctx, indices, args) ->
 
@@ -69,11 +97,15 @@ class DynamicImageView extends PlotWidget
       @_draw_image(extent.join(':'))
       return
 
-    if @lastImage?
-      @_draw_image(@lastImage.cache_key)
+    if @lastImages?
+      @_draw_images(@lastImages)
 
     if not image_obj?
       @render_timer = setTimeout((=> @_create_image(extent)), 125)
+
+  _draw_images: (images) ->
+    for i in images
+      @_draw_image(i)
 
   _draw_image: (image_key) ->
     image_obj = @mget('image_source').images[image_key]
@@ -114,6 +146,9 @@ class DynamicImageRenderer extends HasParent
       angle: 0
       alpha: 1.0
       image_source:undefined
+      wrap_around: False
+      wrap_around_start: -1 * Math.PI * 6378137
+      wrap_around_end: Math.PI * 6378137
     }
 
   display_defaults: ->
@@ -121,6 +156,75 @@ class DynamicImageRenderer extends HasParent
       level: 'underlay'
     }
 
+class WrapAroundUtils
+
+  constructor: (wrap_min, wrap_max, canvas) ->
+    @wrap_min = wrap_min
+    @wrap_max = wrap_max
+    @wrap_range = wrap_max - wrap_min
+
+  world_to_1d_range: (world_x) ->
+    offset = @wrap_range * world_x
+    return [@wrap_min + offset, @wrap_max + offset]
+
+  extent_to_world_range:(bounds) ->
+    [xmin, ymin, xmax, ymax] = bounds
+    world_min = Math.floor((xmin - @wrap_min)  / @wrap_range)
+    world_max = Math.floor((xmax + @wrap_max) / @wrap_range)
+    return [world_min, world_max]
+
+  clip_extent_by_world:(bounds, world) ->
+    [xmin, ymin, xmax, ymax] = bounds
+    [wmin, wmax] = @world_to_1d_range(world)
+    return [Math.max(xmin, wmin), ymin, Math.min(xmax, wmax), ymax]
+
+  map_range:(x, o_min, o_max, n_min, n_max) ->
+
+    #check reversed input ranges
+    reverse_input = false
+    old_min = Math.min(o_min, o_max)
+    old_max = Math.max(o_min, o_max)
+    if not old_min == o_min
+        reverse_input = True
+
+    reverse_output = false
+    new_min = Math.min(n_min, n_max)
+    new_max = Math.max(n_min, n_max)
+    if not new_min == n_min
+        reverse_output = true
+
+    portion = (x - old_min) * (new_max - new_min) / (old_max - old_min)
+    if reverse_input
+        portion = (old_max - x) * (new_max - new_min) / (old_max - old_min)
+
+    result = portion + new_min
+    if reverse_output
+        result = new_max - portion
+
+    return result
+
+  normalize_bounds: (bounds, world) ->
+      [xmin, ymin, xmax, ymax] = bounds
+      [world_min, world_max] = @world_to_1d_range(world)
+      nxmin = @map_range(xmin, world_min, world_max, @wrap_min, @wrap_max)
+      nxmax = @map_range(xmax, world_min, world_max, @wrap_min, @wrap_max)
+      return [nxmin, ymin, nxmax, ymax]
+
+  partition_bounds: (bounds) ->
+    [world_min, world_max] = @extent_to_world_range(bounds)
+    parts = []
+    for w in [world_min..world_max] by 1
+      actual_bounds = @clip_extent_by_world(bounds, w)
+      normalized_bounds = @normalize_bounds(actual_bounds, w)
+      part =
+        bounds:actual_bounds
+        normalized_bounds:normalized_bounds
+      parts.push(part)
+
+    return parts
+
+
 module.exports =
   Model: DynamicImageRenderer
   View: DynamicImageView
+  WrapAroundUtils: WrapAroundUtils
