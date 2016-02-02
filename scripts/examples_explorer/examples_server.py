@@ -275,8 +275,16 @@ class Session(object):
 
 here = os.path.realpath(__file__)
 here_dir = os.path.abspath(os.path.join(here, os.pardir))
-examples_dir = os.path.abspath(os.path.join(
-    here, os.pardir, os.pardir, os.pardir, "examples"))
+
+import sys
+args = sys.argv[1:]
+
+if args:
+    examples_dir = args[0]
+else:
+    examples_dir = os.path.abspath(os.path.join(
+        here, os.pardir, os.pardir, os.pardir, "examples"))
+
 sessions_dir = os.path.abspath(os.path.join(
     here, os.pardir))
 DEFAULT_SESSION_FILE = session_file = os.path.join(sessions_dir, "SESSION.json")
