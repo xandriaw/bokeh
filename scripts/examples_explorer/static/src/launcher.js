@@ -8,6 +8,7 @@ function show_source(example, data){
         .modal('setting', 'closable', false)
         .modal('show');
 
+        $("#code_filename").html(data.name);
         // Take the code and put it into the codemirror editor.
         window.cm.getDoc().setValue(data.source);
     })
