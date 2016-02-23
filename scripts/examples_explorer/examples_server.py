@@ -273,6 +273,13 @@ class Session(object):
 
         return files_count
 
+    @staticmethod
+    def get_source(example):
+        if example['type'] == 'file':
+            with open(example['name'], 'r') as efile:
+                return efile.read()
+        raise NotImplementedError("Only files have source!")
+
 here = os.path.realpath(__file__)
 here_dir = os.path.abspath(os.path.join(here, os.pardir))
 
@@ -341,6 +348,17 @@ def run():
 
     examples['all_files'][id_] = example
     examples.save_session()
+
+    return jsonify(example)
+
+
+@app.route('/api/source', methods=['GET', 'OPTIONS'])
+def get_source():
+    examples = Session(session_file=session_file)
+    args = request.values
+    id_ = args['id']
+    example = examples.get_file(id_)
+    example['source'] = examples.get_source(example)
 
     return jsonify(example)
 

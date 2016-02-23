@@ -17,6 +17,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.js"></script>
 
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.12.0/codemirror.min.css" rel="stylesheet" type="text/css">
+
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.12.0/codemirror.min.js"></script>
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.12.0/mode/javascript/javascript.min.js"></script>
+   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.12.0/mode/python/python.min.js"></script>
+
+
   <script>
 
 
@@ -52,6 +59,16 @@
            on: 'hover'
          });
 
+         // prepare the SOURCE CODE EDITOR
+         var template = $('#code_editor');
+         var txtarea = template.find('textarea');
+
+         window.cm = CodeMirror.fromTextArea(txtarea[0], {
+                 lineNumbers: true,
+                 matchBrackets: true
+         });
+         window.cm.setSize(800, 450);
+         window.cm.setOption('mode', "python");
     })
   ;
 
@@ -293,12 +310,15 @@
       Welcome to Bokeh Launcher
       <!-- <div class="sub header">$10.99</div> -->
     </h2>
+
   </div>
 
   <h4 class="ui horizontal divider header" style="padding-top: 50px">
     <i class="tag icon"></i>
     Description
   </h4>
+
+
   <p>Bokeh examples launcher is an interactive web app built to help you explore
     and play with the examples provided by the project.</p>
 
@@ -360,6 +380,25 @@
       </div>
     </div>
 
+
+    <div id="source_text_dlg" class="ui small basic test modal hidden transition" style="margin-top: -123px; display: block !important;">
+      <div class="ui icon header">
+        <i class="code icon"></i>
+      </div>
+      <div class="content">
+
+        <div id='code_editor' style='height: 450px;'>
+            <textarea  style='height: 450px;'></textarea>
+        </div>
+
+      </div>
+      <div class="actions">
+        <div class="ui red basic cancel inverted button">
+          <i class="remove icon"></i>
+          Close
+        </div>
+      </div>
+    </div>
 
 
 </body>

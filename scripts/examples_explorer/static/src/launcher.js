@@ -1,4 +1,23 @@
 
+function show_source(example, data){
+  // TODO: probably don't need this global var anymore..
+  window.selected_example = example;
+  var jqxhr = $.get( "api/source", {'id': example}, function(data) {
+
+      $('#source_text_dlg')
+        .modal('setting', 'closable', false)
+        .modal('show');
+
+        // Take the code and put it into the codemirror editor.
+        window.cm.getDoc().setValue(data.source);
+    })
+      .fail(function() {
+        alert( "Error trying to retrieve file source code" );
+      });
+
+}
+
+
 function show_loading(itemid){
   $("#"+itemid+"_loader").addClass('active');
   $("#"+itemid+"_loader div").addClass('active');
@@ -61,6 +80,10 @@ var Example = React.createClass({
     return ask_feedback(exampleid);
   },
 
+  handleClickSourceCode: function(exampleid, data){
+    show_source(exampleid, data);
+  },
+
   render: function() {
     var status_id = this.props.data.id + "_status";
     var seen_id = this.props.data.id + "_seen";
@@ -82,6 +105,9 @@ var Example = React.createClass({
 
     var boundClick = this.handleClick.bind(this, this.props.data.id);
     var boundClickFeedback = this.handleClickFeedback.bind(this, this.props.data.id);
+    var boundClickSourcecode = this.handleClickSourceCode.bind(this, this.props.data.id, this.props.data);
+
+
     var return_default_image = function(){
       console.log("CALLED ON ERROR", "#"+img_id, '/static/images/logo.png');
       $("#"+img_id).src='/static/images/logo.png';
@@ -103,13 +129,13 @@ var Example = React.createClass({
                 <button id={status_id} className={status_btn_classes}  onClick={boundClick}>
                   <i className={icon_classes}></i>{btn_label}
                 </button>
+                <button onClick={boundClickSourcecode}
+                className="ui left circular facebook icon button" style={{float: "left"}}>
+                  <i className="code icon"></i>
+                </button>
                 <button onClick={boundClickFeedback}
                 className="ui left circular yellow icon button" style={{float: "right"}}>
                   <i className="bug icon"></i>
-                </button>
-                <button onClick={boundClickFeedback}
-                className="ui left circular facebook icon button" style={{float: "left"}}>
-                  <i className="code icon"></i>
                 </button>
               </div>
             </div>
