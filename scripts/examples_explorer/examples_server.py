@@ -1,4 +1,6 @@
+import sys
 import os
+import time
 from copy import deepcopy
 from pprint import pprint
 import json
@@ -19,6 +21,33 @@ sessions = {}
 
 jss = []
 scripts = []
+
+# Define commands absolute paths
+PY_EXECUTABLE = (sys.executable)
+bin_folder = os.path.abspath(os.path.join(PY_EXECUTABLE, os.pardir))
+BK_CMD = os.path.join(bin_folder, "bokeh")
+JUPYTER_CMD = os.path.join(bin_folder, "jupyter")
+
+# define current dir location
+here = os.path.realpath(__file__)
+here_dir = os.path.abspath(os.path.join(here, os.pardir))
+
+args = sys.argv[1:]
+if args:
+    examples_dir = args[-1]
+    if not os.path.exists(examples_dir):
+        print ("PATH PROVIDED %s DO NOT EXIST. SWITCHING TO LOCAL PATH" % examples_dir)
+
+        examples_dir = os.path.abspath(os.path.join(
+            here, os.pardir, os.pardir, os.pardir, "examples"))
+else:
+    examples_dir = os.path.abspath(os.path.join(
+        here, os.pardir, os.pardir, os.pardir, "examples"))
+
+sessions_dir = os.path.abspath(os.path.join(
+    here, os.pardir))
+DEFAULT_SESSION_FILE = session_file = os.path.join(sessions_dir, "SESSION.json")
+
 
 
 def is_server_app(path):
@@ -42,10 +71,10 @@ def get_cmd(some_file, notebook_options=""):
     """
 
     if some_file.endswith('.py'):
-        command = "/Users/fpliger/miniconda3/envs/big_n/bin/python"
+        command = PY_EXECUTABLE
         args = []
     elif some_file.endswith('.ipynb'):
-        command = "/Users/fpliger/miniconda3/envs/big_n/bin/jupyter"
+        command = JUPYTER_CMD
         args = ['notebook']
         if notebook_options:
             args.append(notebook_options)
@@ -61,6 +90,7 @@ def start_bokeh_server(force=False):
     if Session.running_server:
         if force:
             Session.running_server.kill()
+            Session.running_server = None
         else:
             print ("REUSING PREVIOUS SERVER SESSION")
             return Session.running_server
@@ -98,7 +128,20 @@ def opener(some_file, kommand, args, script_type):
         try:
             print ("STARTING", kommand, some_file)
             if not "jupyter" in kommand:
-                if script_type == 'server script':
+                if script_type == 'server app':
+                    kmd = "%s serve %s" % (BK_CMD, some_file)
+
+                    print ("SERVER SESSIONS TO CLOSE:", Session.running_server)
+                    if Session.running_server:
+                        Session.running_server.kill()
+                        print ("SESSION STOPPED")
+
+                    print ("RUNNING APP", kmd)
+                    Session.running_server = subprocess.Popen(kmd, shell=True)
+                    print ("DONE")
+                    return None, Session.running_server
+
+                elif script_type == 'server script':
                     # in this case we need to make sure we have a bokeh server
                     # running
                     start_bokeh_server(force=True)
@@ -353,22 +396,6 @@ class Session(object):
                 return efile.read()
         raise NotImplementedError("Only files have source!")
 
-here = os.path.realpath(__file__)
-here_dir = os.path.abspath(os.path.join(here, os.pardir))
-
-import sys
-args = sys.argv[1:]
-
-if args:
-    examples_dir = args[0]
-else:
-    examples_dir = os.path.abspath(os.path.join(
-        here, os.pardir, os.pardir, os.pardir, "examples"))
-
-sessions_dir = os.path.abspath(os.path.join(
-    here, os.pardir))
-DEFAULT_SESSION_FILE = session_file = os.path.join(sessions_dir, "SESSION.json")
-
 
 @app.route('/')
 def show_entries():
@@ -426,6 +453,7 @@ def run():
             Session.open_ps[id_] = result
         if error:
             example['bug_report'] = error
+
     except:
         example['status'] = ""
         example['bug_report'] = "unknown error executing example"
@@ -434,6 +462,14 @@ def run():
 
     examples['all_files'][id_] = example
     examples.save_session()
+
+    if 'server app' == example['script_type']:
+        example['url_to_open'] = "http://localhost:5006/%s" % example['shortname'].\
+            replace(".py", "").replace(".ipynb", "")
+        # wait some time to let bokeh server start
+        time.sleep(1.5)
+    else:
+        example['url_to_open'] = None
 
     return jsonify(example)
 

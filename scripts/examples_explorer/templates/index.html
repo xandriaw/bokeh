@@ -117,6 +117,18 @@
     var jqxhr = $.post( "api/run", {'path': path}, function(data) {
       register_example(data);
       hide_loading(data.id);
+
+      if (data.url_to_open != null) {
+        var win = window.open(data.url_to_open, '_blank');
+        if(win){
+            //Browser has allowed it to be opened
+            win.focus();
+        }else{
+            //Broswer has blocked it
+            alert('Please allow popups for this site');
+        }
+      }
+
     })
       .done(function(data) {
         // alert( "second success", data );
