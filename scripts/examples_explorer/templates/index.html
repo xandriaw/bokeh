@@ -131,13 +131,11 @@
 
     })
       .done(function(data) {
-        // alert( "second success", data );
       })
       .fail(function() {
-        // alert( "error" );
+        alert( "Some error occured! If you are running server based example it should be due to process loading timeout but the script could be running anuyway!" );
       })
       .always(function() {
-        // alert( "finished" );
     });
   }
 
@@ -149,13 +147,11 @@
           .modal('show');
       })
         .done(function(data) {
-          // alert( "second success", data );
         })
         .fail(function() {
-          // alert( "error" );
+          alert( "Errors occured while cleaning the session!" );
         })
         .always(function() {
-          // alert( "finished" );
       });
 
   }

@@ -89,7 +89,10 @@ def start_bokeh_server(force=False):
     print ("USE SESSION SERVER?", Session.running_server)
     if Session.running_server:
         if force:
+            print ("KILLING!!")
             Session.running_server.kill()
+            time.sleep(1)
+            print ("KILLED")
             Session.running_server = None
         else:
             print ("REUSING PREVIOUS SERVER SESSION")
@@ -100,9 +103,11 @@ def start_bokeh_server(force=False):
     error = None
     result = None
     print ("STARTING BOKEH SERVER")
+
     with open('ERROUT.txt', 'w') as fp:
         try:
             Session.running_server = subprocess.Popen(kmd, shell=True)
+            time.sleep(2)
             print ("STARTED BOKEH SERVER")
         except subprocess.CalledProcessError:
             print ("BOKEH SERVER ERRORED")
@@ -145,9 +150,12 @@ def opener(some_file, kommand, args, script_type):
                     # in this case we need to make sure we have a bokeh server
                     # running
                     start_bokeh_server(force=True)
-
-                print  ('......')
-                result = subprocess.check_output([kommand] + args + [some_file], stderr=fp)
+                    kmd = " ".join([kommand] + args + [some_file])
+                    print  ('created cmd', kmd)
+                    Session.running_server = subprocess.Popen(kmd, shell=True)
+                else:
+                    print  ('......')
+                    result = subprocess.check_output([kommand] + args + [some_file], stderr=fp)
                 print ("FILE   EXECUTED")
             else:
                 kmd = " ".join([kommand] + args + [some_file])
@@ -163,15 +171,15 @@ def opener(some_file, kommand, args, script_type):
     return error, result
 
 def makeid(path):
-    return path.replace('/', '_').replace('\\', '_').replace("__py", "").replace("__ipynb", "")
+    return path.replace('/', '_').replace('\\', '_').replace("__py", "").replace("__ipynb", "").replace(".py", "").replace(".ipynb", "")
 
 def get_image_file_path(path, example, parent):
 
     image_file = "%s.png" % example['id'].replace(parent['id'], '')
     image_path = "/static/images/examples/%s" % image_file
     file_path = os.path.join(here_dir, 'static', 'images', 'examples', image_file)
-
-    if os.path.exists(file_path):
+    print ("CHECKING", os.path.exists(os.path.join(here_dir, file_path)), os.path.join(here_dir, file_path))
+    if os.path.exists(os.path.join(here_dir, file_path)):
         return image_path
     else:
         return '/static/images/logo.png'
