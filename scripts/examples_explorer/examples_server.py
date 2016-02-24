@@ -8,6 +8,8 @@ from flask import Flask, request, session, g, redirect, url_for, \
 from bokeh.client import push_session
 from bokeh.document import Document
 
+import subprocess
+
 DEBUG=True
 
 app = Flask(__name__)
@@ -50,28 +52,60 @@ def get_cmd(some_file, notebook_options=""):
 
     return command, args
 
-def get_listener():
-    import sys
-    from six import StringIO
 
-    stdout_ = sys.stdout #Keep track of the previous value.
-    stream = StringIO()
-    return stream
+def start_bokeh_server(force=False):
+    """Print to screen what file is being opened and then open the file using
+    the command method provided.
+    """
+    print ("USE SESSION SERVER?", Session.running_server)
+    if Session.running_server:
+        if force:
+            Session.running_server.kill()
+        else:
+            print ("REUSING PREVIOUS SERVER SESSION")
+            return Session.running_server
 
-def opener(some_file, kommand, args):
+    kmd = "/Users/fpliger/miniconda3/envs/big_n/bin/bokeh serve"
+    errored = False
+    error = None
+    result = None
+    print ("STARTING BOKEH SERVER")
+    with open('ERROUT.txt', 'w') as fp:
+        try:
+            Session.running_server = subprocess.Popen(kmd, shell=True)
+            print ("STARTED BOKEH SERVER")
+        except subprocess.CalledProcessError:
+            print ("BOKEH SERVER ERRORED")
+            errored = True
+
+    if errored:
+        with open('ERROUT.txt', 'r') as fp:
+            error = fp.read()
+
+    return error, Session.running_server
+
+
+def opener(some_file, kommand, args, script_type):
     """Print to screen what file is being opened and then open the file using
     the command method provided.
     """
 
-    import subprocess
     errored = False
     error = None
     result = None
     with open('ERROUT.txt', 'w') as fp:
-        listener = get_listener()
+        # listener = get_listener()
         try:
+            print ("STARTING", kommand, some_file)
             if not "jupyter" in kommand:
+                if script_type == 'server script':
+                    # in this case we need to make sure we have a bokeh server
+                    # running
+                    start_bokeh_server(force=True)
+
+                print  ('......')
                 result = subprocess.check_output([kommand] + args + [some_file], stderr=fp)
+                print ("FILE   EXECUTED")
             else:
                 kmd = " ".join([kommand] + args + [some_file])
                 result = subprocess.Popen(kmd, shell=True)
@@ -82,7 +116,7 @@ def opener(some_file, kommand, args):
     if errored:
         with open('ERROUT.txt', 'r') as fp:
             error = fp.read()
-
+    print ("ERRORS", errored, error)
     return error, result
 
 def makeid(path):
@@ -99,40 +133,55 @@ def get_image_file_path(path, example, parent):
     else:
         return '/static/images/logo.png'
 
-def traverse_examplesOLD(path, level=3):
-    bad_prefixes = [".", "__"]
-    filesmap = {'type': 'folder', 'children': [], 'name': path, "id": makeid(path),
-        'shortname': os.path.split(path)[-1], 'files': [], 'folders': {},
-        'all_files': {}}
-
-    for firstlevel in os.listdir(path):
-        fullpath = os.path.join(path, firstlevel)
-        curr = None
-        if not any([firstlevel.startswith(k) for k in bad_prefixes]):
-            if os.path.isdir(fullpath):
-                if level > 0:
-                    curr = traverse_examples(fullpath, level-1)
-                else:
-                    curr = {'type': 'folder', 'children': [], 'name': fullpath,
-                        'shortname': firstlevel, 'files': [], 'folders': {}, "id": makeid(fullpath),
-                        'all_files': []}
-
-            elif firstlevel.endswith('.py') or firstlevel.endswith('.ipynb'):
-                curr = {'type': 'file', 'children': [], 'name': fullpath, "id": makeid(fullpath),
-                    'shortname': firstlevel, 'files': [], 'folders': {}, 'status': '',
-                    'bug_report': ''}
-
-            if curr:
-                filesmap['children'].append(curr)
-
-                if curr['type'] == 'folder':
-                    filesmap['folders'][curr['shortname']] = curr
-                    filesmap['all_files'].update(curr['all_files'])
-                else:
-                    filesmap['files'].append(curr['id'])
-                    filesmap['all_files'][curr['id']] = curr
-
-    return filesmap
+# def traverse_examplesOLD(path, level=3):
+#     bad_prefixes = [".", "__"]
+#     filesmap = {'type': 'folder', 'children': [], 'name': path, "id": makeid(path),
+#         'shortname': os.path.split(path)[-1], 'files': [], 'folders': {},
+#         'all_files': {}}
+#
+#     for firstlevel in os.listdir(path):
+#         fullpath = os.path.join(path, firstlevel)
+#         curr = None
+#         if not any([firstlevel.startswith(k) for k in bad_prefixes]):
+#             if os.path.isdir(fullpath):
+#                 if level > 0:
+#                     curr = traverse_examples(fullpath, level-1)
+#                 else:
+#                     curr = {'type': 'folder', 'children': [], 'name': fullpath,
+#                         'shortname': firstlevel, 'files': [], 'folders': {}, "id": makeid(fullpath),
+#                         'all_files': []}
+#
+#             elif firstlevel.endswith('.py') or firstlevel.endswith('.ipynb'):
+#                 curr = {'type': 'file', 'children': [], 'name': fullpath, "id": makeid(fullpath),
+#                     'shortname': firstlevel, 'files': [], 'folders': {}, 'status': '',
+#                     'bug_report': ''}
+#
+#                 if firstlevel.endswith('.ipynb'):
+#                     curr['script_type'] = 'jupyter notebook'
+#                 else:
+#                     source = Session.get_source(fullpath)
+#                     # TODO: Those are very weak way of verifying the script type!!
+#                     if "output_file(" in source:
+#                         curr['script_type'] = 'file'
+#
+#                     elif "output_server(" in source or "push_session(" in source:
+#                         curr['script_type'] = 'server script'
+#
+#                     else:
+#                         # in this case assum it's a server app
+#                         curr['script_type'] = 'server app'
+#
+#             if curr:
+#                 filesmap['children'].append(curr)
+#
+#                 if curr['type'] == 'folder':
+#                     filesmap['folders'][curr['shortname']] = curr
+#                     filesmap['all_files'].update(curr['all_files'])
+#                 else:
+#                     filesmap['files'].append(curr['id'])
+#                     filesmap['all_files'][curr['id']] = curr
+#
+#     return filesmap
 
 def traverse_examples(path, level=3, parent=None):
     bad_prefixes = [".", "__"]
@@ -165,6 +214,21 @@ def traverse_examples(path, level=3, parent=None):
 
                 curr['image_file'] = get_image_file_path(fullpath, curr, parent)
 
+                if firstlevel.endswith('.ipynb'):
+                    curr['script_type'] = 'jupyter notebook'
+                else:
+                    source = Session.get_source(curr)
+                    # TODO: Those are very weak way of verifying the script type!!
+                    if "output_file(" in source:
+                        curr['script_type'] = 'file'
+
+                    elif "output_server(" in source or "push_session(" in source:
+                        curr['script_type'] = 'server script'
+
+                    else:
+                        # in this case assum it's a server app
+                        curr['script_type'] = 'server app'
+
             if curr:
                 if curr['type'] == 'folder':
                     filesmap['folders'].append(curr['id'])
@@ -180,6 +244,7 @@ def traverse_examples(path, level=3, parent=None):
 
 class Session(object):
     open_ps = {}
+    running_server = None
     def __init__(self, session=None, session_file=None):
         if not session_file:
             session_file = DEFAULT_SESSION_FILE
@@ -333,10 +398,10 @@ def server_session():
         return jsonify(session)
 
 
-def run_example(path, notebook_options):
+def run_example(path, notebook_options, script_type):
     command, args = get_cmd(path, notebook_options)
 
-    return opener(path, command, args)
+    return opener(path, command, args, script_type)
 
 @app.route('/api/run', methods=['POST', 'OPTIONS'])
 def run():
@@ -352,7 +417,10 @@ def run():
 
     example = examples.get_file(id_)
     try:
-        error, result = run_example(example['name'], args.get('notebook_options', ''))
+        error, result = run_example(
+            example['name'],
+            args.get('notebook_options', ''),
+            example['script_type'])
         example['status'] = "seen"
         if result:
             Session.open_ps[id_] = result
