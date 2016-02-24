@@ -40,10 +40,15 @@ def get_cmd(some_file, notebook_options=""):
     """
 
     if some_file.endswith('.py'):
-        command = "python"
+        command = "/Users/fpliger/miniconda3/envs/big_n/bin/python"
+        args = []
     elif some_file.endswith('.ipynb'):
-        command = "ipython notebook %s" % notebook_options
-    return command
+        command = "/Users/fpliger/miniconda3/envs/big_n/bin/jupyter"
+        args = ['notebook']
+        if notebook_options:
+            args.append(notebook_options)
+
+    return command, args
 
 def get_listener():
     import sys
@@ -52,12 +57,8 @@ def get_listener():
     stdout_ = sys.stdout #Keep track of the previous value.
     stream = StringIO()
     return stream
-    # sys.stdout = stream
-    # print "hello" # Here you can do whatever you want, import module1, call test
-    # sys.stdout = stdout_ # restore the previous stdout.
-    # variable = stream.getvalue()
 
-def opener(some_file, command):
+def opener(some_file, kommand, args):
     """Print to screen what file is being opened and then open the file using
     the command method provided.
     """
@@ -65,10 +66,16 @@ def opener(some_file, command):
     import subprocess
     errored = False
     error = None
+    result = None
     with open('ERROUT.txt', 'w') as fp:
         listener = get_listener()
         try:
-            result = subprocess.check_output([command, some_file], stderr=fp)
+            if not "jupyter" in kommand:
+                result = subprocess.check_output([kommand] + args + [some_file], stderr=fp)
+            else:
+                kmd = " ".join([kommand] + args + [some_file])
+                result = subprocess.Popen(kmd, shell=True)
+
         except subprocess.CalledProcessError:
             errored = True
 
@@ -76,10 +83,10 @@ def opener(some_file, command):
         with open('ERROUT.txt', 'r') as fp:
             error = fp.read()
 
-    return error
+    return error, result
 
 def makeid(path):
-    return path.replace('/', '_').replace('\\', '_').replace(".py", "")
+    return path.replace('/', '_').replace('\\', '_').replace("__py", "").replace("__ipynb", "")
 
 def get_image_file_path(path, example, parent):
 
@@ -110,7 +117,7 @@ def traverse_examplesOLD(path, level=3):
                         'shortname': firstlevel, 'files': [], 'folders': {}, "id": makeid(fullpath),
                         'all_files': []}
 
-            elif firstlevel.endswith('.py'):
+            elif firstlevel.endswith('.py') or firstlevel.endswith('.ipynb'):
                 curr = {'type': 'file', 'children': [], 'name': fullpath, "id": makeid(fullpath),
                     'shortname': firstlevel, 'files': [], 'folders': {}, 'status': '',
                     'bug_report': ''}
@@ -150,7 +157,7 @@ def traverse_examples(path, level=3, parent=None):
                         'relative_folders': {}, 'folders': [], "id": makeid(fullpath),
                         'all_files': [], }
 
-            elif firstlevel.endswith('.py'):
+            elif firstlevel.endswith('.py') or firstlevel.endswith('.ipynb'):
                 curr = {'type': 'file', 'children': [], 'name': fullpath, "id": makeid(fullpath),
                     'shortname': firstlevel, 'files': [], 'all_folders': {},
                     'folders': [], 'status': '',
@@ -172,6 +179,7 @@ def traverse_examples(path, level=3, parent=None):
     return filesmap
 
 class Session(object):
+    open_ps = {}
     def __init__(self, session=None, session_file=None):
         if not session_file:
             session_file = DEFAULT_SESSION_FILE
@@ -326,18 +334,28 @@ def server_session():
 
 
 def run_example(path, notebook_options):
-    command = get_cmd(path, notebook_options)
-    return opener(path, command)
+    command, args = get_cmd(path, notebook_options)
+
+    return opener(path, command, args)
 
 @app.route('/api/run', methods=['POST', 'OPTIONS'])
 def run():
     examples = Session(session_file=session_file)
     args = request.form
     id_ = args['path']
+
+    running_ps = set(Session.open_ps.keys())
+    for rid in running_ps:
+        proc = Session.open_ps.pop(rid)
+        proc.kill()
+        print ("Children process running", rid, "killed")
+
     example = examples.get_file(id_)
     try:
-        error = run_example(example['name'], args.get('notebook_options', ''))
+        error, result = run_example(example['name'], args.get('notebook_options', ''))
         example['status'] = "seen"
+        if result:
+            Session.open_ps[id_] = result
         if error:
             example['bug_report'] = error
     except:
