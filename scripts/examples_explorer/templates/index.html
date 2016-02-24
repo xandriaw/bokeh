@@ -118,6 +118,8 @@
       register_example(data);
       hide_loading(data.id);
 
+      // debugger
+      update_stats(window.current_folder)
       if (data.url_to_open != null) {
         var win = window.open(data.url_to_open, '_blank');
         if(win){
@@ -128,6 +130,7 @@
             alert('Please allow popups for this site');
         }
       }
+
 
     })
       .done(function(data) {

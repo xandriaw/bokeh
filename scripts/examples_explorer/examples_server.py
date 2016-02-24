@@ -425,7 +425,12 @@ def server_session():
     folder_name = args.get('folder', "")
 
     if folder_name:
-        return jsonify(examples.get_folder(folder_name))
+        print ("FOLDERNAME", folder_name)
+        folder_info = examples.get_folder(folder_name)
+        folder_info['seen_files_count'] = examples.count_folder_seen_files(folder_info)
+        folder_info['total_files_count'] = examples.count_folder_total_files(folder_info)
+        # import pdb; pdb.set_trace()
+        return jsonify(folder_info)
     else:
         session = examples._session
         session['folders'] = {fn: examples.get_folder(fn) for fn in examples['folders']}

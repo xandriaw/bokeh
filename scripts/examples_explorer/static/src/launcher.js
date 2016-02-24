@@ -483,9 +483,9 @@ var FolderBoxData = React.createClass({
             Run All
           </button>
           <a style={{marginRight: 30+"px"}}></a>
-          <a className="ui green tag label">{folder_info.files_seen.length} files seen</a>
-          <a className="ui red tag label">{folder_info.files_reported.length} known bugs</a>
-          <a className="ui yellow tag label">{folder_info.files.length} total files</a>
+          <a id="folder_files_seen" className="ui green tag label">{folder_info.files_seen.length} files seen</a>
+          <a id="folder_bugs" className="ui red tag label">{folder_info.files_reported.length} known bugs</a>
+          <a id="folder_total_files" className="ui yellow tag label">{folder_info.files.length} total files</a>
 
         <FoldersList key={this.props.data.id} root={this.props.data} folders={folder_info.folders} shortname={this.props.data.shortname}/>
       </div>
@@ -572,9 +572,34 @@ function select_folder(folder_id){
   $("#"+folder_id+"_menu_label").addClass("teal");
 }
 
+
+function update_stats(folder){
+  var path = "/api/session?folder=" + window.current_folder;
+
+  $.ajax({url: path, dataType: 'json', cache: false,
+    success: function(data) {
+        $("#"+data.id+"_menu_label").html(data.seen_files_count+" /"+data.total_files_count);
+        $("#folder_files_seen").html(data.seen_files_count + " files seen");
+
+      // ReactDOM.render(
+      //   <FolderBoxData data={data} />,
+      //   document.getElementById('main-container')
+      // );
+      //
+      // select_folder(data.id);
+      //
+      // setTimeout(reset_semantic, 100);
+    }.bind(this),
+    error: function(xhr, status, err) {
+      console.error(this.props.url, status, err.toString());
+    }.bind(this)
+  });
+
+}
+
 function update_new_section(folder){
   var path = "/api/session?folder="+folder;
-
+  window.current_folder = folder;
   $.ajax({
     url: path,
     dataType: 'json',
