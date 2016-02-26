@@ -213,55 +213,6 @@ def get_image_file_path(path, example, parent):
     else:
         example["image_file"] = '/static/images/logo.png'
 
-# def traverse_examplesOLD(path, level=3):
-#     bad_prefixes = [".", "__"]
-#     filesmap = {'type': 'folder', 'children': [], 'name': path, "id": makeid(path),
-#         'shortname': os.path.split(path)[-1], 'files': [], 'folders': {},
-#         'all_files': {}}
-#
-#     for firstlevel in os.listdir(path):
-#         fullpath = os.path.join(path, firstlevel)
-#         curr = None
-#         if not any([firstlevel.startswith(k) for k in bad_prefixes]):
-#             if os.path.isdir(fullpath):
-#                 if level > 0:
-#                     curr = traverse_examples(fullpath, level-1)
-#                 else:
-#                     curr = {'type': 'folder', 'children': [], 'name': fullpath,
-#                         'shortname': firstlevel, 'files': [], 'folders': {}, "id": makeid(fullpath),
-#                         'all_files': []}
-#
-#             elif firstlevel.endswith('.py') or firstlevel.endswith('.ipynb'):
-#                 curr = {'type': 'file', 'children': [], 'name': fullpath, "id": makeid(fullpath),
-#                     'shortname': firstlevel, 'files': [], 'folders': {}, 'status': '',
-#                     'bug_report': ''}
-#
-#                 if firstlevel.endswith('.ipynb'):
-#                     curr['script_type'] = 'jupyter notebook'
-#                 else:
-#                     source = Session.get_source(fullpath)
-#                     # TODO: Those are very weak way of verifying the script type!!
-#                     if "output_file(" in source:
-#                         curr['script_type'] = 'file'
-#
-#                     elif "output_server(" in source or "push_session(" in source:
-#                         curr['script_type'] = 'server script'
-#
-#                     else:
-#                         # in this case assum it's a server app
-#                         curr['script_type'] = 'server app'
-#
-#             if curr:
-#                 filesmap['children'].append(curr)
-#
-#                 if curr['type'] == 'folder':
-#                     filesmap['folders'][curr['shortname']] = curr
-#                     filesmap['all_files'].update(curr['all_files'])
-#                 else:
-#                     filesmap['files'].append(curr['id'])
-#                     filesmap['all_files'][curr['id']] = curr
-#
-#     return filesmap
 
 def traverse_examples(path, level=3, parent=None):
     bad_prefixes = [".", "__"]
