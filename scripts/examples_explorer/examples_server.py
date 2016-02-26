@@ -196,20 +196,25 @@ def makeid(path):
     return path.replace('/', '_').replace('\\', '_').replace("__py", "").replace("__ipynb", "").replace(".py", "").replace(".ipynb", "")
 
 
-def get_example_image_file_path(example, parent):
-    image_file = "%s.png" % example['id'].replace(parent['id'], '')
-    image_path = "/static/images/examples/%s" % image_file
-    file_path = os.path.join(here_dir, 'static', 'images', 'examples', image_file)
+# def get_example_image_file_path(example, parent):
+#     image_file = "%s.png" % example['id'].replace(parent['id'], '')
+#     image_path = "/static/images/examples/%s" % image_file
+#     file_path = os.path.join(here_dir, 'static', 'images', 'examples', image_file)
+#
+#     return os.path.join(here_dir, file_path)
 
-    return os.path.join(here_dir, file_path)
+def get_image_file_path(example, parent=None):
+    if parent:
+        example["_image_file"] = "%s.png" % example['id'].replace(parent['id'], '')
 
-def get_image_file_path(path, example, parent):
-    example["_image_file"] = image_file = "%s.png" % example['id'].replace(parent['id'], '')
-    example["_image_path"] = image_path = "/static/images/examples/%s" % image_file
-    example["valid_image_file_path"] = file_path = os.path.join(here_dir, 'static', 'images', 'examples', image_file)
+    if not "_image_path" in example:
+        example["_image_path"] = "/static/images/examples/%s" % example["_image_file"]
 
-    if os.path.exists(os.path.join(here_dir, file_path)):
-        example["image_file"] = image_path
+    if not "valid_image_file_path" in example:
+        example["valid_image_file_path"] = os.path.join(here_dir, 'static', 'images', 'examples', example["_image_file"])
+
+    if os.path.exists(os.path.join(here_dir, example["valid_image_file_path"])):
+        example["image_file"] = example["_image_path"]
     else:
         example["image_file"] = '/static/images/logo.png'
 
@@ -247,7 +252,7 @@ def traverse_examples(path, level=3, parent=None):
                 # curr['image_file'] = get_image_file_path(fullpath, curr, parent)
 
                 # add image information to example
-                get_image_file_path(fullpath, curr, parent)
+                get_image_file_path(curr, parent)
 
                 curr['script_type'] = get_script_type(firstlevel, curr)
 
@@ -301,7 +306,17 @@ class Session(object):
 
     def save_session(self, recreate=False):
         if recreate:
+            seen = set([id_ for id_, ex in self._session['all_files'].items() if ex['status'] == 'seen'])
+
             self.recreate_session()
+
+
+            for id_ in seen:
+                print ("RESTORING...", id_)
+                ex = self.get_file(id_)
+                ex['status'] == 'seen'
+                self._session['all_files'][id_] = ex
+
 
         self.clear_session(self._session_file)
 
@@ -357,7 +372,7 @@ class Session(object):
             for folder_ in folder['folders']:
                 files_count += len(folder_['files'])
 
-
+        print (folder['id'], "TOTAL FILES COUNT", files_count)
         return files_count
 
     def count_folder_seen_files(self, folder):
@@ -377,6 +392,7 @@ class Session(object):
                     if file_['status'] == 'seen':
                         files_count += 1
 
+        print (folder['id'], "SEEN FILES COUNT", files_count)
         return files_count
 
     @staticmethod
@@ -492,9 +508,11 @@ def take_screenshot_api():
 
         example['image_file'] = example['_image_path']
 
+        get_image_file_path(example)
+
         # saving session again to update screenshot
         examples['all_files'][id_] = example
-        examples.save_session(recreate=True)
+        examples.save_session()
 
     return jsonify(example)
 

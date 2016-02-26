@@ -581,14 +581,6 @@ function update_stats(folder){
         $("#"+data.id+"_menu_label").html(data.seen_files_count+" /"+data.total_files_count);
         $("#folder_files_seen").html(data.seen_files_count + " files seen");
 
-      // ReactDOM.render(
-      //   <FolderBoxData data={data} />,
-      //   document.getElementById('main-container')
-      // );
-      //
-      // select_folder(data.id);
-      //
-      // setTimeout(reset_semantic, 100);
     }.bind(this),
     error: function(xhr, status, err) {
       console.error(this.props.url, status, err.toString());
