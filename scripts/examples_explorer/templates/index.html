@@ -118,24 +118,29 @@
       register_example(data);
       hide_loading(data.id);
 
-      // debugger
-      update_stats(window.current_folder)
+      update_stats(window.current_folder);
       if (data.url_to_open != null) {
         var win = window.open(data.url_to_open, '_blank');
         if(win){
             //Browser has allowed it to be opened
             win.focus();
+
         }else{
             //Broswer has blocked it
             alert('Please allow popups for this site');
         }
       }
 
-      var old_img = $("#"+data.id + "_img")[0].src;
-      if (data.image_file == old_img.src){
-        old_img.src = data.image_file;
-      }
+      // ok, new examples loaded so we can ask the server to take a screenshot
+      var jqxhr = $.post( "api/take_screenshot", {'id': path}, function(data) {
+          var old_img = $("#"+data.id + "_img")[0];
 
+          // if there was the need for a screenshot and we have a new img file
+          // we replace the image src link
+          if (data.image_file != old_img.src){
+            old_img.src = data.image_file;
+          }
+        })
 
     })
       .done(function(data) {

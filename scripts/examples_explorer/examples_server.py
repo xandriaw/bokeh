@@ -52,20 +52,18 @@ sessions_dir = os.path.abspath(os.path.join(
 DEFAULT_SESSION_FILE = session_file = os.path.join(sessions_dir, "SESSION.json")
 
 
-def schedule_screeshot(example, timer):
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        # executor.map(take_screenshot)
-        f = executor.submit(take_screenshot, example, timer)
-        res = f.result()
-        print (res)
-        return res
-        # for future in concurrent.futures.as_completed(future_to_url):
-        # for number, prime in zip(PRIMES, executor.map(take_screenshot, PRIMES)):
-        #     print('%d is prime: %s' % (number, prime))
+# def schedule_screeshot(example, timer):
+#     with concurrent.futures.ProcessPoolExecutor() as executor:
+#         # executor.map(take_screenshot)
+#         f = executor.submit(take_screenshot, example, timer)
+#         res = f.result()
+#         print (res)
+#         return res
 
 def take_screenshot(example, timer):
-    print ("SAVING..")
+    print ("SAVING in ..", timer)
     time.sleep(timer)
+
     import pyscreenshot
 
     screenshot = pyscreenshot.grab(bbox=[30, 100, 1000, 800])
@@ -522,19 +520,32 @@ def run():
     else:
         example['url_to_open'] = None
 
-    if not os.path.exists(example['valid_image_file_path']) and \
-        'server app' != example['script_type']:
-            timer = 3
-            schedule_screeshot(example, timer)
-            example['image_file'] = example['_image_path']
-
-            # saving session again to update screenshot
-            examples['all_files'][id_] = example
-            examples.save_session(recreate=True)
-
 
     return jsonify(example)
 
+
+@app.route('/api/take_screenshot', methods=['POST', 'OPTIONS'])
+def take_screenshot_api():
+    examples = Session(session_file=session_file)
+    args = request.form
+    id_ = args['id']
+    example = examples.get_file(id_)
+
+
+    if not os.path.exists(example['valid_image_file_path']):
+        timer = 2
+        if 'server' in example['script_type']:
+            timer = 6
+
+        take_screenshot(example, timer)
+
+        example['image_file'] = example['_image_path']
+
+        # saving session again to update screenshot
+        examples['all_files'][id_] = example
+        examples.save_session(recreate=True)
+
+    return jsonify(example)
 
 @app.route('/api/source', methods=['GET', 'OPTIONS'])
 def get_source():
