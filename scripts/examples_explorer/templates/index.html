@@ -131,6 +131,11 @@
         }
       }
 
+      var old_img = $("#"+data.id + "_img")[0].src;
+      if (data.image_file == old_img.src){
+        old_img.src = data.image_file;
+      }
+
 
     })
       .done(function(data) {

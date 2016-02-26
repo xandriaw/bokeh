@@ -3,6 +3,8 @@ import os
 import time
 from copy import deepcopy
 from pprint import pprint
+import concurrent.futures
+
 import json
 from flask import Flask, request, session, g, redirect, url_for, \
      abort, render_template, flash, jsonify
@@ -11,6 +13,7 @@ from bokeh.client import push_session
 from bokeh.document import Document
 
 import subprocess
+from six import string_types
 
 DEBUG=True
 
@@ -49,20 +52,41 @@ sessions_dir = os.path.abspath(os.path.join(
 DEFAULT_SESSION_FILE = session_file = os.path.join(sessions_dir, "SESSION.json")
 
 
+def schedule_screeshot(example, timer):
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        # executor.map(take_screenshot)
+        f = executor.submit(take_screenshot, example, timer)
+        res = f.result()
+        print (res)
+        return res
+        # for future in concurrent.futures.as_completed(future_to_url):
+        # for number, prime in zip(PRIMES, executor.map(take_screenshot, PRIMES)):
+        #     print('%d is prime: %s' % (number, prime))
 
-def is_server_app(path):
-    if os.path.isdir(path):
-        return True
+def take_screenshot(example, timer):
+    print ("SAVING..")
+    time.sleep(timer)
+    import pyscreenshot
+
+    screenshot = pyscreenshot.grab(bbox=[30, 100, 1000, 800])
+    screenshot.save(example['valid_image_file_path'])
+
+
+def get_script_type(filename, example):
+    # TODO: Those are very weak way of verifying the script type!!
+    if filename.endswith('.ipynb'):
+        return 'jupyter notebook'
     else:
-        with open(path, 'r') as fp:
-            content = fp.read()
+        source = Session.get_source(example)
+        if "output_file(" in source or 'file_html(' in source:
+            return 'file'
 
-        # TODO: THERE MUST BE A BETTER WAY TO CHECK THIS...
-        if "output_file(" or "output_server(":
-            return False
+        elif "output_server(" in source or "push_session(" in source:
+            return 'server script'
 
-    return True
-
+        else:
+            # in this case assum it's a server app
+            return 'server app'
 
 
 def get_cmd(some_file, notebook_options=""):
@@ -173,16 +197,23 @@ def opener(some_file, kommand, args, script_type):
 def makeid(path):
     return path.replace('/', '_').replace('\\', '_').replace("__py", "").replace("__ipynb", "").replace(".py", "").replace(".ipynb", "")
 
-def get_image_file_path(path, example, parent):
 
+def get_example_image_file_path(example, parent):
     image_file = "%s.png" % example['id'].replace(parent['id'], '')
     image_path = "/static/images/examples/%s" % image_file
     file_path = os.path.join(here_dir, 'static', 'images', 'examples', image_file)
-    print ("CHECKING", os.path.exists(os.path.join(here_dir, file_path)), os.path.join(here_dir, file_path))
+
+    return os.path.join(here_dir, file_path)
+
+def get_image_file_path(path, example, parent):
+    example["_image_file"] = image_file = "%s.png" % example['id'].replace(parent['id'], '')
+    example["_image_path"] = image_path = "/static/images/examples/%s" % image_file
+    example["valid_image_file_path"] = file_path = os.path.join(here_dir, 'static', 'images', 'examples', image_file)
+
     if os.path.exists(os.path.join(here_dir, file_path)):
-        return image_path
+        example["image_file"] = image_path
     else:
-        return '/static/images/logo.png'
+        example["image_file"] = '/static/images/logo.png'
 
 # def traverse_examplesOLD(path, level=3):
 #     bad_prefixes = [".", "__"]
@@ -262,23 +293,14 @@ def traverse_examples(path, level=3, parent=None):
                     'shortname': firstlevel, 'files': [], 'all_folders': {},
                     'folders': [], 'status': '',
                     'bug_report': ''}
+                #
+                # curr['valid_image_file_path'] = get_example_image_file_path(curr, parent)
+                # curr['image_file'] = get_image_file_path(fullpath, curr, parent)
 
-                curr['image_file'] = get_image_file_path(fullpath, curr, parent)
+                # add image information to example
+                get_image_file_path(fullpath, curr, parent)
 
-                if firstlevel.endswith('.ipynb'):
-                    curr['script_type'] = 'jupyter notebook'
-                else:
-                    source = Session.get_source(curr)
-                    # TODO: Those are very weak way of verifying the script type!!
-                    if "output_file(" in source:
-                        curr['script_type'] = 'file'
-
-                    elif "output_server(" in source or "push_session(" in source:
-                        curr['script_type'] = 'server script'
-
-                    else:
-                        # in this case assum it's a server app
-                        curr['script_type'] = 'server app'
+                curr['script_type'] = get_script_type(firstlevel, curr)
 
             if curr:
                 if curr['type'] == 'folder':
@@ -306,6 +328,14 @@ class Session(object):
 
         self._session = session
 
+    def recreate_session(self):
+        examples = traverse_examples(examples_dir, 3)
+        examples['session'] = {k: '' for k in examples['all_files']}
+        examples['bugs'] = []
+        self._session = examples
+
+        return self._session
+
     @staticmethod
     def get_session(filename):
         if not os.path.exists(filename):
@@ -320,7 +350,10 @@ class Session(object):
 
         return examples
 
-    def save_session(self):
+    def save_session(self, recreate=False):
+        if recreate:
+            self.recreate_session()
+
         self.clear_session(self._session_file)
 
         with open(self._session_file, 'w') as fp:
@@ -452,10 +485,15 @@ def run():
     running_ps = set(Session.open_ps.keys())
     for rid in running_ps:
         proc = Session.open_ps.pop(rid)
-        proc.kill()
-        print ("Children process running", rid, "killed")
+        try:
+            proc.kill()
+            print ("Children process running", rid, "killed")
+
+        except AttributeError:
+            print (proc, "is not a process!")
 
     example = examples.get_file(id_)
+
     try:
         error, result = run_example(
             example['name'],
@@ -483,6 +521,17 @@ def run():
         time.sleep(1.5)
     else:
         example['url_to_open'] = None
+
+    if not os.path.exists(example['valid_image_file_path']) and \
+        'server app' != example['script_type']:
+            timer = 3
+            schedule_screeshot(example, timer)
+            example['image_file'] = example['_image_path']
+
+            # saving session again to update screenshot
+            examples['all_files'][id_] = example
+            examples.save_session(recreate=True)
+
 
     return jsonify(example)
 
