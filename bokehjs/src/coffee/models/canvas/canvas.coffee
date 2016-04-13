@@ -8,6 +8,7 @@ BokehView = require "../../core/bokeh_view"
 {logger} = require "../../core/logging"
 p = require "../../core/properties"
 {fixup_image_smoothing, fixup_line_dash, fixup_line_dash_offset, fixup_measure_text, get_scale_ratio} = require "../../core/util/canvas"
+Util = require "../../util/util"
 
 class CanvasView extends BokehView
   className: "bk-canvas-wrapper"
@@ -96,45 +97,34 @@ class Canvas extends LayoutBox.Model
     @set_dims([@get('canvas_width'), @get('canvas_height')])
     logger.debug("Canvas attached to document")
 
-  # transform view coordinates to underlying screen coordinates
+  # Transform view coordinates -> underlying screen coordinates
   vx_to_sx: (x) -> x
 
   vy_to_sy: (y) ->
     # Note: +1 to account for 1px canvas dilation
     return @get('height') - (y + 1)
 
-  # vectorized versions of vx_to_sx/vy_to_sy, these are mutating, in-place operations
   v_vx_to_sx: (xx) ->
-    for x, idx in xx
-      xx[idx] = x
     return xx
 
   v_vy_to_sy: (yy) ->
-    canvas_height = @get('height')
-    # Note: +1 to account for 1px canvas dilation
-    for y, idx in yy
-      yy[idx] = canvas_height - (y + 1)
-    return yy
+    height = @get('height')
+    return Util.map_vector_that_may_contain_patches_with_holes(yy, (y) -> height - (y + 1))
 
-  # transform underlying screen coordinates to view coordinates
-  sx_to_vx: (x) -> x
+  # Transform underlying screen coordinates -> view coordinates
+  sx_to_vx: (x) -> 
+    return x
 
   sy_to_vy: (y) ->
     # Note: +1 to account for 1px canvas dilation
     return @get('height') - (y + 1)
 
-  # vectorized versions of sx_to_vx/sy_to_vy, these are mutating, in-place operations
   v_sx_to_vx: (xx) ->
-    for x, idx in xx
-      xx[idx] = x
     return xx
 
   v_sy_to_vy: (yy) ->
-    canvas_height = @get('height')
-    # Note: +1 to account for 1px canvas dilation
-    for y, idx in yy
-      yy[idx] = canvas_height - (y + 1)
-    return yy
+    height = @get('height')
+    return Util.map_vector_that_may_contain_patches_with_holes(yy, (y) -> height - (y + 1))
 
   _set_width: (width) ->
     solver = @document.solver()

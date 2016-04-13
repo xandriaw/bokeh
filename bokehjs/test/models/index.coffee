@@ -1,3 +1,4 @@
+require "./canvas"
 require "./callbacks"
 require "./formatters"
 require "./glyphs"
