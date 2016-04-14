@@ -28,7 +28,7 @@ def get_dataset(src, name, distribution):
 
 
 def make_plot(source, title):
-    plot = Figure(x_axis_type="datetime", plot_width=1000, tools="", toolbar_location=None)
+    plot = Figure(x_axis_type="datetime", plot_width=1000, tools="", toolbar_location=None, responsive=True)
     plot.title = title
     colors = Blues4[0:3]
 
@@ -88,7 +88,7 @@ plot = make_plot(source, cities[city]['title'])
 city_select.on_change('value', update_plot)
 distribution_select.on_change('value', update_plot)
 
-controls = VBox(city_select, distribution_select)
+controls = HBox(city_select, distribution_select)
 
 # add to document
-curdoc().add_root(HBox(controls, plot))
+curdoc().add_root(VBox(controls, plot))

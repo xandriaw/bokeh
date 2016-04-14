@@ -5,19 +5,12 @@
         <title>{{ title if title else "Bokeh Plot" }}</title>
         {{ bokeh_css }}
         {{ bokeh_js }}
-        <style>
-          #wrapper {
-            width: 50%
-          }
-        </style>
     </head>
     <body>
         <div>
-            HERE IS SOME CUSTOM STUFF
+          <a href="http://localhost:5006/weather">Weather</a>
         </div>
-        <div id="wrapper">
         {{ plot_div|indent(8) }}
-        </div>
         {{ plot_script|indent(8) }}
     </body>
 </html>
