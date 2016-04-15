@@ -99,8 +99,8 @@ class HoverToolView extends InspectTool.View
     y = ymapper.map_from_target(vy)
 
     for i in indices['0d'].indices
-      data_x = renderer.glyph.x[i+1]
-      data_y = renderer.glyph.y[i+1]
+      data_x = renderer.glyph._x[i+1]
+      data_y = renderer.glyph._y[i+1]
 
       if @mget('line_policy') == "interp"# and renderer.get_interpolation_hit?
         [data_x, data_y] = renderer.glyph.get_interpolation_hit(i, geometry)
