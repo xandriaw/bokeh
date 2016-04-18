@@ -287,6 +287,11 @@ class Renderer extends Model
   type: "Renderer"
 
   _coords: []
+   
+  serializable_attributes: () ->
+    attrs = super()
+    delete attrs["level"]
+    return attrs
 
   @coords: (coords) ->
     _coords = this.prototype._coords.concat(coords)
