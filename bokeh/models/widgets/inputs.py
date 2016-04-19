@@ -167,6 +167,11 @@ class Slider(InputWidget):
        The `mouseup` policy is intended for scenarios in which the callback is expensive in time.
     """)
 
+    width = Int(default=300, help="""
+    The width of the block in pixels. Default: 300
+    """)
+
+
 class DateRangeSlider(InputWidget):
     """ Slider-based date range selection widget.
 

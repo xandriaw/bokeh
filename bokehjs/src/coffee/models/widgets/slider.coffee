@@ -9,6 +9,7 @@ p = require "../../core/properties"
 
 class SliderView extends BokehView
   tagName: "div"
+  className: "bk-slider"
   template: slidertemplate
 
   initialize: (options) ->
@@ -45,13 +46,11 @@ class SliderView extends BokehView
     }
     @$('.slider').slider(opts)
     @$( "##{ @mget('id') }" ).val( @$('.slider').slider('value') )
+    if @mget('width')
+      @$el.width(@mget('width'))
     return @
 
-  slidestart: (event, ui) =>
-    @$( "##{ @mget('id') }" ).css('color', '#ffceab')
-
   slidestop: (event, ui) =>
-    @$( "##{ @mget('id') }" ).css('color', '#f6931f')
     if @mget('callback_policy') == 'mouseup' or @mget('callback_policy') == 'throttle'
       @mget('callback')?.execute(@model)
 
@@ -74,6 +73,7 @@ class Slider extends InputWidget.Model
       orientation:       [ p.Orientation, "horizontal" ]
       callback_throttle: [ p.Number,      200          ]
       callback_policy:   [ p.String,      "throttle"   ] # TODO (bev) enum
+      width:             [ p.Number,      300          ]
     }
 
 module.exports =
