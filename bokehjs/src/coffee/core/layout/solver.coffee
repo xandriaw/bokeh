@@ -32,13 +32,12 @@ class Solver
     @solver._editMap._array.length
 
   update_variables: (trigger=true) ->
-    console.log('update variables')
     @solver.updateVariables()
     if trigger
       @trigger('layout_update')
 
-  add_constraint: (constraint) ->
-    @solver.addConstraint(constraint)
+  add_constraint: (constraint, optimize=true) ->
+    @solver.addConstraint(constraint, optimize)
 
   remove_constraint: (constraint) ->
     @solver.removeConstraint(constraint)

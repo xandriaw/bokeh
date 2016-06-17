@@ -1403,7 +1403,8 @@ var kiwi;
         /**
         * Add a constraint to the solver.
         */
-        Solver.prototype.addConstraint = function (constraint) {
+        Solver.prototype.addConstraint = function (constraint, optimize) {
+            var optimize = typeof optimize !== 'undefined' ?  optimize : true;
             var cnPair = this._cnMap.find(constraint);
             if (cnPair !== undefined) {
                 throw new Error("duplicate constraint");
@@ -1439,10 +1440,10 @@ var kiwi;
             // the row represents an unsatisfiable constraint.
             if (subject.type() === 0 /* Invalid */) {
                 if (!this._addWithArtificialVariable(row)) {
-                    var names = ""
+                    var names = "";
                     for (var i=0, item; item = constraint._expression._terms._array[i]; i++) {
                         names += item.first._name;
-                        names += ", "
+                        names += ", ";
                     }
                     var human_operator = ['LE', 'GE', 'EQ'];
                     throw new Error("Unsatisfiable constraint [" + names.slice(0, -2) + "] operator: " + human_operator[constraint._operator]);
@@ -1458,7 +1459,12 @@ var kiwi;
             // Optimizing after each constraint is added performs less
             // aggregate work due to a smaller average system size. It
             // also ensures the solver remains in a consistent state.
-            this._optimize(this._objective);
+            if (optimize === true) {
+              this._optimize(this._objective);
+            } 
+            //else {
+            //  console.log('not optimizing');
+            //}
         };
 
         /**
