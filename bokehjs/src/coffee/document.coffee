@@ -140,6 +140,7 @@ class Document
 
       solver = @solver(root)
 
+
       vars = root.get_constrained_variables()
       if not vars.width? and not vars.height?
         # Still trigger a resize for the case of fixed
