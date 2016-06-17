@@ -83,18 +83,15 @@ class Document
     @_all_models_by_name = new _MultiValuedDict()
     @_all_model_counts = {}
     @_callbacks = []
-
-    @_solver = new Solver()
+    @_solvers = {}
     @_doc_width = new Variable("document_width")
     @_doc_height = new Variable("document_height")
-    @_solver.add_edit_variable(@_doc_width)
-    @_solver.add_edit_variable(@_doc_height)
-
     $(window).on("resize", $.proxy(@resize, @))
 
   solver: (caller) ->
     console.log(caller.type)
-    @_solver
+    console.log(@_solvers)
+    @_solvers[@_roots[0].id]
 
   resize: () ->
     # Notes on resizing (xx:yy means event yy on object xx):
@@ -536,6 +533,12 @@ class Document
 
     doc = new Document()
     for r in root_ids
+      # We need to add the solver as early as possible.
+      # This is right after it used to be created on doc instantiation.
+      solver = new Solver()
+      solver.add_edit_variable(doc._doc_width)
+      solver.add_edit_variable(doc._doc_height)
+      doc._solvers[r] = solver
       doc.add_root(references[r])
 
     doc.set_title(json['title'])
