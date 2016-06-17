@@ -139,7 +139,6 @@ class Document
         @_solver.suggest_value(@_doc_height, height)
 
     # Finally update everything only once.
-    console.log(@)
     @_solver.update_variables(false)
     @_solver.trigger('resize')
 
