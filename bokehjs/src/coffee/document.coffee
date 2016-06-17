@@ -90,7 +90,7 @@ class Document
     @_solver.add_edit_variable(@_doc_height)
     $(window).on("resize", $.proxy(@resize, @))
 
-  solver: () ->
+  solver: (caller) ->
     @_solver
 
   resize: () ->

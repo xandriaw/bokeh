@@ -28,7 +28,7 @@ class PlotView extends LayoutDOM.View
 
     if @model.sizing_mode is 'scale_both'
       [width, height] = @get_width_height()
-      s = @model.document.solver()
+      s = @model.document.solver(@model)
       s.suggest_value(@model._width, width)
       s.suggest_value(@model._height, height)
       @$el.css({

@@ -409,8 +409,8 @@ class PlotCanvasView extends Renderer.View
     @listenTo(@model.toolbar, 'change:tools', @build_levels)
     @listenTo(@model, 'change', @request_render)
     @listenTo(@model, 'destroy', () => @remove())
-    @listenTo(@model.document.solver(), 'layout_update', @request_render)
-    @listenTo(@model.document.solver(), 'resize', @resize)
+    @listenTo(@model.document.solver(@model), 'layout_update', @request_render)
+    @listenTo(@model.document.solver(@model), 'resize', @resize)
 
   set_initial_range : () ->
     # check for good values for ranges before setting initial range
@@ -568,7 +568,7 @@ class PlotCanvasView extends Renderer.View
     })
 
   update_constraints: () ->
-    s = @model.document.solver()
+    s = @model.document.solver(@model)
 
     # Note: -1 to effectively dilate the canvas by 1px
     s.suggest_value(@frame._width, @canvas.get('width') - 1)

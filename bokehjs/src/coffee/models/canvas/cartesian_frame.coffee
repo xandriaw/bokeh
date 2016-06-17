@@ -73,7 +73,7 @@ class CartesianFrame extends LayoutCanvas.Model
     return null
 
   _doc_attached: () ->
-    @listenTo(@document.solver(), 'layout_update', @_update_mappers)
+    @listenTo(@document.solver(@), 'layout_update', @_update_mappers)
     return null
 
   contains: (vx, vy) ->

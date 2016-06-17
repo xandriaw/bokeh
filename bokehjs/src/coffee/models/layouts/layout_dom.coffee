@@ -40,9 +40,9 @@ class LayoutDOMView extends BokehView
     sizing_mode_msg = "Changing sizing_mode after initialization is not currently supported."
     @listenTo(@model, 'change:sizing_mode', () -> logger.warn(sizing_mode_msg))
     if @model.sizing_mode == 'fixed'
-      @listenToOnce(@model.document.solver(), 'resize', @render)
+      @listenToOnce(@model.document.solver(@model), 'resize', @render)
     else
-      @listenTo(@model.document.solver(), 'resize', @render)
+      @listenTo(@model.document.solver(@model), 'resize', @render)
 
   render: () ->
     #logger.debug("#{@model} _dom_left: #{@model._dom_left._value}, _dom_top: #{@model._dom_top._value}")
@@ -50,7 +50,7 @@ class LayoutDOMView extends BokehView
     #logger.debug("#{@model} _width: #{@model._width._value}, _height: #{@model._height._value}")
     #logger.debug("#{@model} _width_minus_right: #{@model._width_minus_right._value}, _height_minus_bottom: #{@model._height_minus_bottom._value}")
 
-    s = @model.document.solver()
+    s = @model.document.solver(@model)
 
     if @model.sizing_mode is 'fixed'
       # If the width or height is unset:

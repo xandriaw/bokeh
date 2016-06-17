@@ -93,7 +93,7 @@ class CanvasView extends BokehView
     if _.isEqual(@last_requested_dims, [requested_width, requested_height])
       return
 
-    s = @model.document.solver()
+    s = @model.document.solver(@model)
 
     if @_width_constraint?
       s.remove_constraint(@_width_constraint)
