@@ -83,23 +83,15 @@ class Document
     @_all_models_by_name = new _MultiValuedDict()
     @_all_model_counts = {}
     @_callbacks = []
+    @_solver = new Solver()
     @_doc_width = new Variable("document_width")
     @_doc_height = new Variable("document_height")
+    @_solver.add_edit_variable(@_doc_width)
+    @_solver.add_edit_variable(@_doc_height)
     $(window).on("resize", $.proxy(@resize, @))
-    @solvers = {}
-
-  add_solver: (root) ->
-    root_solver = new Solver()
-    root_solver.add_edit_variable(@_doc_width)
-    root_solver.add_edit_variable(@_doc_height)
-    @solvers[root.id] = root_solver
-    return root_solver
 
   solver: (caller) ->
-    if caller._is_root
-      return @solvers[caller.id]
-    else
-      return @solvers[caller.document._roots[0].id]
+    @_solver
 
   resize: () ->
     # Notes on resizing (xx:yy means event yy on object xx):
@@ -118,10 +110,6 @@ class Document
 
     for root in @_roots
       if root.layoutable isnt true
-        continue
-
-      solver = @solvers[root.id]
-      if not solver?
         continue
 
       vars = root.get_constrained_variables()
@@ -145,14 +133,14 @@ class Document
       # Set the constraints on root
       if vars.width?
         logger.debug("Suggest width on Document -- #{width}")
-        solver.suggest_value(@_doc_width, width)
+        @_solver.suggest_value(@_doc_width, width)
       if vars.height?
         logger.debug("Suggest height on Document -- #{height}")
-        solver.suggest_value(@_doc_height, height)
+        @_solver.suggest_value(@_doc_height, height)
 
-      # Finally update everything only once.
-      solver.update_variables(false)
-      solver.trigger('resize')
+    # Finally update everything only once.
+    @_solver.update_variables(false)
+    @_solver.trigger('resize')
 
   clear : () ->
     while @_roots.length > 0
@@ -180,20 +168,18 @@ class Document
     constraints = model.get_constraints()
     vars = model.get_constrained_variables()
 
-    solver = @add_solver(model)
-
     for {edit_variable, strength} in editables
-      solver.add_edit_variable(edit_variable, strength)
+      @_solver.add_edit_variable(edit_variable, strength)
 
     for constraint in constraints
-      solver.add_constraint(constraint)
+      @_solver.add_constraint(constraint)
 
     if vars.width?
-      solver.add_constraint(EQ(vars.width, @_doc_width))
+      @_solver.add_constraint(EQ(vars.width, @_doc_width))
     if vars.height?
-      solver.add_constraint(EQ(vars.height, @_doc_height))
+      @_solver.add_constraint(EQ(vars.height, @_doc_height))
 
-    solver.update_variables()
+    @_solver.update_variables()
 
   add_root : (model) ->
     logger.debug("Adding root: #{model}")
