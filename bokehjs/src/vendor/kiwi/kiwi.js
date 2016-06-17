@@ -1404,7 +1404,6 @@ var kiwi;
         * Add a constraint to the solver.
         */
         Solver.prototype.addConstraint = function (constraint, optimize) {
-            var optimize = typeof optimize !== 'undefined' ?  optimize : true;
             var cnPair = this._cnMap.find(constraint);
             if (cnPair !== undefined) {
                 throw new Error("duplicate constraint");
@@ -1459,12 +1458,9 @@ var kiwi;
             // Optimizing after each constraint is added performs less
             // aggregate work due to a smaller average system size. It
             // also ensures the solver remains in a consistent state.
-            if (optimize === true) {
+            if (optimize !== false) {
               this._optimize(this._objective);
             } 
-            //else {
-            //  console.log('not optimizing');
-            //}
         };
 
         /**
