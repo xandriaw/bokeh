@@ -32,6 +32,7 @@ class Solver
     @solver._editMap._array.length
 
   update_variables: (trigger=true) ->
+    console.log('update variables')
     @solver.updateVariables()
     if trigger
       @trigger('layout_update')
