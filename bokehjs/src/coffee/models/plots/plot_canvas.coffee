@@ -639,6 +639,7 @@ class PlotCanvas extends LayoutDOM.Model
       initial_height: @plot_height,
       use_hidpi: @hidpi
     })
+    @canvas._findable = @
 
     # Min border applies to the edge of everything
     if @min_border?
@@ -663,6 +664,7 @@ class PlotCanvas extends LayoutDOM.Model
       extra_y_ranges: @extra_y_ranges,
       y_mapper_type: @y_mapper_type,
     })
+    @frame._findable = @canvas._findable
     @frame.attach_document(@document)
 
     # Add the panels that make up the layout

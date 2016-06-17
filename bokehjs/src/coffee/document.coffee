@@ -91,7 +91,34 @@ class Document
   solver: (caller) ->
     console.log(caller.type)
     console.log(@_solvers)
-    @_solvers[@_roots[0].id]
+
+    # If it's a root it's easy
+    if caller._is_root?
+      solver = @_solvers[caller.id]
+      console.log("found solver #{solver}")
+      return solver
+
+    # If it has _solver ref it's easy
+    if caller._solver?
+      solver = caller._solver
+      console.log("found solver #{solver}")
+      return solver
+
+    # Try by findable
+    if caller._findable?
+      findable_id = caller._findable.id
+    else
+      findable_id = caller.id
+    for root in @_roots
+      refs = root.references()
+      ref_for_caller = _.find(refs, (ref) => findable_id == ref.id)
+      if ref_for_caller?
+        solver = @_solvers[root.id]
+        caller._solver = solver
+        console.log("found solver #{solver}")
+        return solver
+
+    console.log("BOOO")
 
   resize: () ->
     # Notes on resizing (xx:yy means event yy on object xx):
