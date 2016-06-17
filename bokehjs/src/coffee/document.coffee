@@ -89,19 +89,19 @@ class Document
     $(window).on("resize", $.proxy(@resize, @))
 
   solver: (caller) ->
-    console.log(caller.type)
-    console.log(@_solvers)
+    #console.log(caller.type)
+    #console.log(@_solvers)
 
     # If it's a root it's easy
     if caller._is_root?
       solver = @_solvers[caller.id]
-      console.log("found solver #{solver}")
+      #console.log("found solver #{solver}")
       return solver
 
     # If it has _solver ref it's easy
     if caller._solver?
       solver = caller._solver
-      console.log("found solver #{solver}")
+      #console.log("found solver #{solver}")
       return solver
 
     # Try by findable
@@ -115,10 +115,9 @@ class Document
       if ref_for_caller?
         solver = @_solvers[root.id]
         caller._solver = solver
-        console.log("found solver #{solver}")
+        #console.log("found solver #{solver}")
         return solver
-
-    console.log("BOOO")
+    #console.log("BOOO")
 
   resize: () ->
     # Notes on resizing (xx:yy means event yy on object xx):
@@ -139,8 +138,13 @@ class Document
       if root.layoutable isnt true
         continue
 
+      solver = @solver(root)
+
       vars = root.get_constrained_variables()
       if not vars.width? and not vars.height?
+        # Still trigger a resize for the case of fixed
+        console.log("triggering resize on solver #{solver.id} #{solver}")
+        solver.trigger('resize')
         continue
 
       # Find the html element
@@ -157,7 +161,6 @@ class Document
       width = measuring.width()
       height = target_height
 
-      solver = @solver(root)
       # Set the constraints on root
       if vars.width?
         logger.debug("Suggest width on Document -- #{width}")
