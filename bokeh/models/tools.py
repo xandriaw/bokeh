@@ -32,7 +32,7 @@ from ..core.enums import Dimension, Location
 from .annotations import BoxAnnotation, PolyAnnotation
 from .callbacks import Callback
 from .renderers import Renderer
-from .layouts import LayoutDOM
+from .layouts import LayoutDOM, Box
 
 
 class ToolEvents(Model):
@@ -78,7 +78,7 @@ class Toolbar(ToolbarBase):
     """
 
 
-class ToolbarBox(LayoutDOM):
+class ToolbarBox(Box):
     """ A layoutable toolbar that can accept the tools of multiple plots, and
     can merge the tools into a single button for convenience.
 
@@ -95,6 +95,11 @@ class ToolbarBox(LayoutDOM):
 
     merge_tools = Bool(default=True, help="""
         Merge all the tools together so there is one tool to control all the plots.
+    """)
+
+    logo = Enum("normal", "grey", help="""
+    What version of the Bokeh logo to display on the toolbar. If
+    set to None, no logo will be displayed.
     """)
 
 

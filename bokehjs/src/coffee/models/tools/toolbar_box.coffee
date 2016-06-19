@@ -5,7 +5,6 @@ ActionTool = require "./actions/action_tool"
 HelpTool = require "./actions/help_tool"
 GestureTool = require "./gestures/gesture_tool"
 InspectTool = require "./inspectors/inspect_tool"
-LayoutDOM = require "../layouts/layout_dom"
 ToolbarBase = require "./toolbar_base"
 {ToolProxy} = require "./tool_proxy"
 
@@ -120,7 +119,7 @@ class ToolbarBoxView extends Box.View
     return 30
 
 
-class ToolbarBox extends LayoutDOM.Model
+class ToolbarBox extends Box.Model
   type: 'ToolbarBox'
   default_view: ToolbarBoxView
 
@@ -143,11 +142,8 @@ class ToolbarBox extends LayoutDOM.Model
   @define {
     toolbar_location: [ p.Location, "above"  ]
     merge_tools:      [ p.Bool,     true     ]
-    tools:            [ p.Any,  []   ]
-  }
-
-  @override {
-    responsive: null
+    tools:            [ p.Any,      []       ]
+    logo:             [ p.String,   "normal" ]
   }
 
   # These exist only to allow pass-through to create the toolbar.
