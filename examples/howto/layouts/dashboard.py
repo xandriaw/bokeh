@@ -19,15 +19,13 @@ def bollinger():
     band_x = np.append(x_data, x_data[::-1])
     band_y = np.append(lowerband, upperband[::-1])
 
-    p = figure(x_axis_type='datetime', tools=tools)
+    p = figure(
+        x_axis_type='datetime',
+        tools=tools, toolbar_location='above',
+        title='Bollinger Bands', title_location='left',
+        plot_height=600, plot_width=800
+    )
     p.patch(band_x, band_y, color='#7570B3', fill_alpha=0.2)
-
-    p.title = 'Bollinger Bands'
-    p.title_location = 'left'
-    p.title.align = 'left'
-    p.plot_height = 600
-    p.plot_width = 800
-    p.grid.grid_line_alpha = 0.4
     return [p]
 
 
