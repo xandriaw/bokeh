@@ -70,6 +70,7 @@ class ColorMapper extends Model
         return parseInt(value.slice(1), 16)
     for i in [0...palette.length]
       new_palette[i] = _convert(palette[i])
+    # I'm not sure this line does anything
     new_palette[new_palette.length-1] = _convert(palette[palette.length-1])
     return new_palette
 

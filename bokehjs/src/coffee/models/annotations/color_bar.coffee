@@ -51,8 +51,8 @@ class ColorBarView extends Annotation.View
     # LinearColorMapper instance and map a monotonic range of values with
     # length = palette.length to get each palette color in order.
     cmap = new LinearColorMapper.Model({palette: palette})
-    buf = cmap.v_map_screen([0...palette.length])
-    buf8 = new Uint8ClampedArray(buf)
+    buf = cmap.v_map_screen([0...palette.length+1])
+    buf8 = new Uint8ClampedArray(buf[0...-4])
     image_data.data.set(buf8)
     image_ctx.putImageData(image_data, 0, 0)
 
