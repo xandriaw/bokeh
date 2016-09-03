@@ -131,56 +131,10 @@ class GlyphView extends Renderer.View
     else
       return (Math.abs(spt1[i] - spt0[i]) for i in [0...spt0.length])
 
-  get_reference_point: () ->
-    return undefined
-    #reference_point = @mget('reference_point')
-    #ret = if _.isNumber(reference_point)
-    #  @data[reference_point]
-    #else
-    #  reference_point
-    #return ret
-
-  draw_legend: (ctx, x0, x1, y0, y1) -> null
-
-  _generic_line_legend: (ctx, x0, x1, y0, y1) ->
-    reference_point = @get_reference_point() ? 0
-    ctx.save()
-    ctx.beginPath()
-    ctx.moveTo(x0, (y0 + y1) /2)
-    ctx.lineTo(x1, (y0 + y1) /2)
-    if @visuals.line.doit
-      @visuals.line.set_vectorize(ctx, reference_point)
-      ctx.stroke()
-    ctx.restore()
-
-  _generic_area_legend: (ctx, x0, x1, y0, y1) ->
-    reference_point = @get_reference_point() ? 0
-    indices = [reference_point]
-
-    w = Math.abs(x1-x0)
-    dw = w*0.1
-    h = Math.abs(y1-y0)
-    dh = h*0.1
-
-    sx0 = x0 + dw
-    sx1 = x1 - dw
-
-    sy0 = y0 + dh
-    sy1 = y1 - dh
-
-    if @visuals.fill.doit
-      @visuals.fill.set_vectorize(ctx, reference_point)
-      ctx.fillRect(sx0, sy0, sx1-sx0, sy1-sy0)
-
-    if @visuals.line.doit
-      ctx.beginPath()
-      ctx.rect(sx0, sy0, sx1-sx0, sy1-sy0)
-      @visuals.line.set_vectorize(ctx, reference_point)
-      ctx.stroke()
-
 class Glyph extends Model
   @define {
       visible: [ p.Bool, true ]
+      legend_label: [ p.StringSpec ]
     }
 
   @internal {

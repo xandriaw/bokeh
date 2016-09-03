@@ -8,10 +8,13 @@ from __future__ import absolute_import
 from ..core.enums import Direction, Anchor
 from ..core.property_mixins import FillProps, LineProps, TextProps
 from ..model import Model
-from ..core.properties import (abstract, AngleSpec, Bool, DistanceSpec, Enum, Float,
-                          Include, Instance, Int, NumberSpec, StringSpec)
+from ..core.properties import (
+    abstract, AngleSpec, Bool, DistanceSpec, Enum, Float,
+    Include, Instance, Int, NumberSpec, StringSpec
+)
 
 from .mappers import ColorMapper, LinearColorMapper
+
 
 @abstract
 class Glyph(Model):
@@ -20,6 +23,12 @@ class Glyph(Model):
     visible = Bool(True, help="""
     Whether the glyph should render or not.
     """)
+
+    legend_label = StringSpec(default=None, help="""
+    The column from which to build one or more legend labels. If the visual properties
+    of a glyph are powered by a ColumnDataSource this will be recognized.
+    """)
+
 
 class AnnularWedge(Glyph):
     """ Render annular wedges. """

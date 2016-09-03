@@ -215,8 +215,18 @@ class GlyphRendererView extends Renderer.View
   map_to_screen: (x, y) ->
     @plot_view.map_to_screen(x, y, @mget("x_range_name"), @mget("y_range_name"))
 
-  draw_legend: (ctx, x0, x1, y0, y1) ->
-    @glyph.draw_legend(ctx, x0, x1, y0, y1)
+  get_reference_point: (legend_label_property, legend_label_value) ->
+    if legend_label_property?
+      # Get the index of the first item that matches the label
+      data = @model.data_source.data[legend_label_property['field']]
+      index = _.indexOf(data, legend_label_value)
+      if index != -1
+        return index
+    return 0
+
+  draw_legend: (ctx, x0, x1, y0, y1, legend_label_property, legend_label_value) ->
+    reference_index = @get_reference_point(legend_label_property, legend_label_value)
+    @glyph.draw_legend(ctx, x0, x1, y0, y1, reference_index)
 
   hit_test: (geometry) ->
     @glyph.hit_test(geometry)

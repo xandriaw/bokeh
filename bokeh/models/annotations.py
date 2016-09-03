@@ -126,6 +126,9 @@ class Legend(Annotation):
         Dict(String, List(Instance(GlyphRenderer))), lambda d: list(d.items())
     )
 
+    data_legends = List(Instance(GlyphRenderer))
+
+
 class ColorBar(Annotation):
     """ Render a color bar based on a color mapper for a plot.
     """

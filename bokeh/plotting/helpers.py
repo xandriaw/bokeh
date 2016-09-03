@@ -430,6 +430,9 @@ def _glyph_function(glyphclass, extra_docs=None):
                                        **renderer_kws)
 
         if legend_name:
+            # If it's a list, use the list
+            # If it's a column name use that
+            # Otherwise just use it as a label
             _update_legend(self, legend_name, glyph_renderer)
 
         for tool in self.select(type=BoxSelectTool):

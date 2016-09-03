@@ -8,8 +8,7 @@ class LegendView extends Annotation.View
   initialize: (options) ->
     super(options)
 
-  compute_legend_bbox: () ->
-    legend_names = (legend_name for [legend_name, glyphs] in @mget("legends"))
+  compute_legend_bbox: (legend_names) ->
 
     glyph_height = @mget('glyph_height')
     glyph_width = @mget('glyph_width')
@@ -88,35 +87,65 @@ class LegendView extends Annotation.View
     return {x: x, y: y, width: legend_width, height: legend_height}
 
   render: () ->
-    if @model.legends.length == 0
-      return
+    if @model.legends.length != 0
+      @_render_simple_legends()
 
-    bbox = @compute_legend_bbox()
+    if @model.data_legends.length != 0
+      @_render_data_legends()
+
+    return null
+
+  _render_data_legends: () ->
+    # Going to need to figure out how to render legends of different 
+    # sizes e.g. for a bubble plot
+    renderer = @model.data_legends[0]
+    legend_label_property = renderer.glyph.legend_label
+    # Here we could check for value and what not
+    legend_label_column = legend_label_property['field']
+    legend_label_data = renderer.data_source.data[legend_label_column]
+    legend_labels = _.unique(legend_label_data)
+    bbox = @compute_legend_bbox(legend_labels)
+    @_draw_legend_box(bbox)
+    ctx = @plot_view.canvas_view.ctx
+
+    glyph_height = @model.glyph_height
+    glyph_width = @model.glyph_width
+    orientation = @model.orientation
+    legend_spacing = @model.legend_spacing
+    label_standoff = @model.label_standoff
+    xoffset = yoffset = @model.legend_padding
+    ctx = @plot_view.canvas_view.ctx
+    ctx.save()
+    for label in legend_labels
+      x1 = bbox.x + xoffset
+      y1 = bbox.y + yoffset
+      x2 = x1 + glyph_width
+      y2 = y1 + glyph_height
+      if orientation == "vertical"
+        yoffset += @max_label_height + legend_spacing
+      else
+        xoffset += @text_widths[label] + glyph_width + label_standoff + legend_spacing
+
+      @visuals.label_text.set_value(ctx)
+      ctx.fillText(label, x2 + label_standoff, y1 + @max_label_height / 2.0)
+      view = @plot_view.renderer_views[renderer.id]
+      view.draw_legend(ctx, x1, x2, y1, y2, legend_label_property, label)
+    ctx.restore()
+
+  _render_simple_legends: () ->
+    legend_names = (legend_name for [legend_name, glyphs] in @mget("legends"))
+    bbox = @compute_legend_bbox(legend_names)
+    @_draw_legend_box(bbox)
+
 
     glyph_height = @mget('glyph_height')
     glyph_width = @mget('glyph_width')
     orientation = @mget('orientation')
-
-    ctx = @plot_view.canvas_view.ctx
-    ctx.save()
-
-    if @model.panel?
-      panel_offset = @_get_panel_offset()
-      ctx.translate(panel_offset.x, panel_offset.y)
-
-    ctx.beginPath()
-    ctx.rect(bbox.x, bbox.y, bbox.width, bbox.height)
-
-    @visuals.background_fill.set_value(ctx)
-    ctx.fill()
-    if @visuals.border_line.doit
-      @visuals.border_line.set_value(ctx)
-      ctx.stroke()
-
-    N = @mget("legends").length
     legend_spacing = @mget('legend_spacing')
     label_standoff = @mget('label_standoff')
     xoffset = yoffset = @mget('legend_padding')
+    ctx = @plot_view.canvas_view.ctx
+    ctx.save()
     for [legend_name, glyphs], idx in @mget("legends")
       x1 = bbox.x + xoffset
       y1 = bbox.y + yoffset
@@ -132,7 +161,24 @@ class LegendView extends Annotation.View
       for renderer in glyphs
         view = @plot_view.renderer_views[renderer.id]
         view.draw_legend(ctx, x1, x2, y1, y2)
+    ctx.restore()
 
+  _draw_legend_box: (bbox) ->
+    ctx = @plot_view.canvas_view.ctx
+    ctx.save()
+
+    if @model.panel?
+      panel_offset = @_get_panel_offset()
+      ctx.translate(panel_offset.x, panel_offset.y)
+
+    ctx.beginPath()
+    ctx.rect(bbox.x, bbox.y, bbox.width, bbox.height)
+
+    @visuals.background_fill.set_value(ctx)
+    ctx.fill()
+    if @visuals.border_line.doit
+      @visuals.border_line.set_value(ctx)
+      ctx.stroke()
     ctx.restore()
 
   _get_size: () ->
@@ -157,6 +203,7 @@ class Legend extends Annotation.Model
   @mixins ['text:label_', 'line:border_', 'fill:background_']
 
   @define {
+      data_legends:   [ p.Array,          []          ]
       legends:        [ p.Array,          []          ]
       orientation:    [ p.Orientation,    'vertical'  ]
       location:       [ p.Any,            'top_right' ] # TODO (bev)
