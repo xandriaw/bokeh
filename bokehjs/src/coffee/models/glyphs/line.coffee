@@ -101,7 +101,16 @@ export class LineView extends GlyphView
     return [res.x, res.y]
 
   draw_legend_for_index: (ctx, x0, x1, y0, y1, index) ->
-    @_generic_line_legend(ctx, x0, x1, y0, y1, index)
+      # adapted from circle.coffee
+      sx = (x0+x1)/2
+      sy = (y0+y1)/2
+      size = Math.min(Math.abs(x1-x0), Math.abs(y1-y0))*0.1
+
+      ctx.beginPath()
+      ctx.arc(sx, sy, size, 0, 2*Math.PI, false)
+      @visuals.line.set_value(ctx)
+      ctx.lineWidth = size * 1.9
+      ctx.stroke()
 
 export class Line extends Glyph
   default_view: LineView
