@@ -1452,8 +1452,11 @@ class Color(Either):
     """
 
     def __init__(self, default=None, help=None):
+        rgb_int = "\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*"
         types = (Enum(enums.NamedColor),
                  Regex("^#[0-9a-fA-F]{6}$"),
+                 Regex("^rgb\\(%s,%s,%s\\)$" % (rgb_int, rgb_int, rgb_int)),
+                 Regex("^rgba\\(%s,%s,%s,\\s*((0.[1-9])|[01])\\s*\\)$" % (rgb_int, rgb_int, rgb_int)),
                  Tuple(Byte, Byte, Byte),
                  Tuple(Byte, Byte, Byte, Percent))
         super(Color, self).__init__(*types, default=default, help=help)
