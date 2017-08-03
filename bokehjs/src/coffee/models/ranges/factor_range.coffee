@@ -71,7 +71,7 @@ export class FactorRange extends Range
   type: 'FactorRange'
 
   @define {
-    factors:             [ p.Array,        []        ]
+    factors:             [ p.Array                   ]
     factor_padding:      [ p.Number,       0         ]
     subgroup_padding:    [ p.Number,       0.8       ]
     group_padding:       [ p.Number,       1.4       ]
